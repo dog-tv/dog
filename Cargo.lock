@@ -1047,7 +1047,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dog"
+name = "dog_tv"
 version = "0.1.0"
 dependencies = [
  "approx",

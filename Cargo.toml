@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "crates/dog",
+  "crates/dog_tv",
   "crates/dog_viewer",
 ]
 resolver = "2"
@@ -15,11 +15,11 @@ include = [
 ]
 keywords = ["visualization"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/sophus-vision/sophus-rs/"
+repository = "https://github.com/dog-tv/dog/"
 version = "0.1.0"
 
 [workspace.dependencies]
-dog = {path = "crates/dog", version = "0.1.0"}
+dog_tv = {path = "crates/dog_tv", version = "0.1.0"}
 dog_viewer = {path = "crates/dog_viewer", version = "0.1.0"}
 
 approx = "0.5"
