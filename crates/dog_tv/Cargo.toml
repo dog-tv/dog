@@ -1,0 +1,28 @@
+[package]
+description = "dog-tv"
+name = "dog_tv"
+readme = "../../README.md"
+
+edition.workspace = true
+include.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+dog_tv_renderer.workspace = true
+dog_tv_sim.workspace = true
+dog_tv_viewer.workspace = true
+
+approx.workspace = true
+assertables.workspace = true
+bytemuck.workspace = true
+eframe.workspace = true
+egui-wgpu.workspace = true
+egui_extras.workspace = true
+env_logger.workspace = true
+sophus.workspace = true
+wgpu.workspace = true
+
+tokio = {version = "1", features = ["full"]}

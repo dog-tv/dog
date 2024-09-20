@@ -1,0 +1,25 @@
+[package]
+description = "dog-tv viewer"
+name = "dog_tv_viewer"
+readme = "../../README.md"
+
+edition.workspace = true
+include.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+dog_tv_renderer.workspace = true
+
+approx.workspace = true
+assertables.workspace = true
+bytemuck.workspace = true
+eframe.workspace = true
+egui_extras.workspace = true
+env_logger.workspace = true
+linked-hash-map.workspace = true
+num-traits.workspace = true
+sophus.workspace = true
+wgpu.workspace = true
