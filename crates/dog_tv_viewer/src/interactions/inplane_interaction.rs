@@ -12,17 +12,19 @@ use sophus::lie::Isometry3F64;
 #[derive(Clone, Copy)]
 pub(crate) struct InplaneScrollState {}
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 /// Interaction state
 pub struct InplaneInteraction {
+    pub(crate) view_name: String,
     pub(crate) maybe_scroll_state: Option<InplaneScrollState>,
     pub(crate) maybe_scene_focus: Option<SceneFocus>,
     pub(crate) zoom2d: TranslationAndScaling,
 }
 
 impl InplaneInteraction {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(view_name: &str) -> Self {
         InplaneInteraction {
+            view_name: view_name.to_owned(),
             maybe_scroll_state: None,
             maybe_scene_focus: None,
             zoom2d: TranslationAndScaling::identity(),
@@ -34,6 +36,7 @@ impl InplaneInteraction {
     /// Scroll up/down: zoom in/out
     pub fn process_scrolls(
         &mut self,
+        active_view: &mut String,
         cam: &RenderIntrinsics,
         response: &egui::Response,
         scales: &ViewportScale,
@@ -67,6 +70,7 @@ impl InplaneInteraction {
 
         if scroll_started {
             self.maybe_scroll_state = Some(InplaneScrollState {});
+            *active_view = self.view_name.clone();
         } else if scroll_stopped {
             self.maybe_scroll_state = None;
         }
@@ -110,11 +114,12 @@ impl InplaneInteraction {
     /// Process event
     pub fn process_event(
         &mut self,
+        active_view: &mut String,
         cam: &RenderIntrinsics,
         response: &egui::Response,
         scales: &ViewportScale,
         view_port_size: ImageSize,
     ) {
-        self.process_scrolls(cam, response, scales, view_port_size);
+        self.process_scrolls(active_view, cam, response, scales, view_port_size);
     }
 }

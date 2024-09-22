@@ -87,4 +87,6 @@ pub struct SceneFocusMarker {
     pub u: f32,
     /// v viewport pixel
     pub v: f32,
+    /// depth
+    pub metric_depth: f64,
 }

@@ -232,6 +232,8 @@ pub struct View3dPacket {
     pub view_label: String,
     /// Initial camera, ignored if not the first packet of "view_name"
     pub initial_camera: RenderCamera,
+    /// lock xy plane
+    pub lock_xy_plane: bool,
 }
 
 /// 3D line

@@ -24,6 +24,10 @@ impl eframe::App for SimpleViewer {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.base.update_data();
 
+        egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
+            self.base.bottom_status_bar(ui);
+        });
+
         egui::SidePanel::left("left").show(ctx, |ui| {
             self.base.update_left_panel(ui);
         });

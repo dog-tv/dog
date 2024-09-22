@@ -112,10 +112,11 @@ fn create_view3_packet(pinhole: bool) -> Packet {
     let mut packet_3d = View3dPacket {
         view_label: match pinhole {
             false => "distorted_view_3d".to_owned(),
-            true => "view_3d".to_owned(),
+            true => "view_3d - xy-locked".to_owned(),
         },
         renderables3d: vec![],
         initial_camera: initial_camera.clone(),
+        lock_xy_plane: pinhole,
     };
 
     let trig_points = [[0.0, 0.0, -0.1], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]];

@@ -150,6 +150,11 @@ impl OffscreenRenderer {
         self.camera_properties.intrinsics.clone()
     }
 
+    /// get camera properties
+    pub fn camera_properties(&self) -> RenderCameraProperties {
+        self.camera_properties.clone()
+    }
+
     /// reset 2d frame
     pub fn reset_2d_frame(
         &mut self,

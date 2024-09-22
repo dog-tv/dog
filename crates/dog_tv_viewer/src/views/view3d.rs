@@ -12,6 +12,7 @@ pub(crate) struct View3d {
     pub(crate) renderer: OffscreenRenderer,
     pub(crate) interaction: InteractionEnum,
     pub(crate) enabled: bool,
+    pub(crate) lock_xy_plane: bool,
 }
 
 impl View3d {
@@ -26,10 +27,12 @@ impl View3d {
                 View::View3d(View3d {
                     renderer: OffscreenRenderer::new(state, &packet.initial_camera.properties),
                     interaction: InteractionEnum::Orbital(OrbitalInteraction::new(
+                        &packet.view_label,
                         packet.initial_camera.scene_from_camera,
                         packet.initial_camera.properties.clipping_planes,
                     )),
                     enabled: true,
+                    lock_xy_plane: packet.lock_xy_plane,
                 }),
             );
         }

@@ -64,5 +64,20 @@ pub fn make_view3d_packet(
         initial_camera,
         view_label: view_label.to_owned(),
         renderables3d,
+        lock_xy_plane: false,
+    })
+}
+
+/// Create a view3d packet
+pub fn make_view3d_packet_xy_locked(
+    view_label: &str,
+    initial_camera: RenderCamera,
+    renderables3d: Vec<Renderable3d>,
+) -> Packet {
+    Packet::View3d(View3dPacket {
+        initial_camera,
+        view_label: view_label.to_owned(),
+        renderables3d,
+        lock_xy_plane: true,
     })
 }

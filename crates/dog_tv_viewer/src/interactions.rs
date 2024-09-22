@@ -86,21 +86,30 @@ impl InteractionEnum {
         }
     }
 
-    /// process event
+    /// Process event
+    #[allow(clippy::too_many_arguments)]
     pub fn process_event(
         &mut self,
+        active_view: &mut String,
         cam: &RenderIntrinsics,
+        lock_xy_plane: bool,
         response: &egui::Response,
         scales: &ViewportScale,
         view_port_size: ImageSize,
         z_buffer: &ArcImageF32,
     ) {
         match self {
-            InteractionEnum::Orbital(orbit) => {
-                orbit.process_event(cam, response, scales, view_port_size, z_buffer)
-            }
+            InteractionEnum::Orbital(orbit) => orbit.process_event(
+                active_view,
+                cam,
+                lock_xy_plane,
+                response,
+                scales,
+                view_port_size,
+                z_buffer,
+            ),
             InteractionEnum::InPlane(inplane) => {
-                inplane.process_event(cam, response, scales, view_port_size)
+                inplane.process_event(active_view, cam, response, scales, view_port_size)
             }
         }
     }
@@ -122,6 +131,7 @@ impl InteractionEnum {
                     },
                     u: scene_focus.uv_in_virtual_camera[0] as f32,
                     v: scene_focus.uv_in_virtual_camera[1] as f32,
+                    metric_depth: scene_focus.depth,
                 })
             }
             false => None,

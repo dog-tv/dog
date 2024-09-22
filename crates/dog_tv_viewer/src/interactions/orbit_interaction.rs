@@ -21,9 +21,10 @@ pub(crate) struct OrbitalPointerState {
 #[derive(Clone, Copy)]
 pub(crate) struct OrbitalScrollState {}
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 /// Interaction state
 pub struct OrbitalInteraction {
+    pub(crate) view_name: String,
     pub(crate) maybe_pointer_state: Option<OrbitalPointerState>,
     pub(crate) maybe_scroll_state: Option<OrbitalScrollState>,
     pub(crate) maybe_scene_focus: Option<SceneFocus>,
@@ -33,10 +34,12 @@ pub struct OrbitalInteraction {
 
 impl OrbitalInteraction {
     pub(crate) fn new(
+        view_name: &str,
         scene_from_camera: Isometry3F64,
         clipping_planes: ClippingPlanesF64,
     ) -> OrbitalInteraction {
         OrbitalInteraction {
+            view_name: view_name.to_owned(),
             maybe_pointer_state: None,
             maybe_scroll_state: None,
             maybe_scene_focus: None,
@@ -75,6 +78,7 @@ impl OrbitalInteraction {
     /// Scroll left/right: rotate about scene focus
     pub fn process_scrolls(
         &mut self,
+        active_view: &mut String,
         cam: &RenderIntrinsics,
         response: &egui::Response,
         scales: &ViewportScale,
@@ -108,6 +112,8 @@ impl OrbitalInteraction {
         let scroll_stopped = self.maybe_scroll_state.is_some() && is_scroll_zero;
 
         if scroll_started {
+            *active_view = self.view_name.clone();
+
             let uv_in_virtual_camera = scales.apply(uv_viewport);
             let ndc_z = z_buffer.pixel(uv_viewport.x as usize, uv_viewport.y as usize) as f64;
             let mut z = self.clipping_planes.metric_z_from_ndc_z(ndc_z);
@@ -169,7 +175,9 @@ impl OrbitalInteraction {
     /// secondary button: in-plane translate
     pub fn process_pointer(
         &mut self,
+        active_view: &mut String,
         cam: &RenderIntrinsics,
+        lock_xy_plane: bool,
         response: &egui::Response,
         scales: &ViewportScale,
         z_buffer: &ArcImageF32,
@@ -179,6 +187,8 @@ impl OrbitalInteraction {
 
         if response.drag_started() {
             // A drag event started - select new scene focus
+
+            *active_view = self.view_name.clone();
 
             let pointer = response.interact_pointer_pos().unwrap();
 
@@ -235,7 +245,7 @@ impl OrbitalInteraction {
                 focus.uv_in_virtual_camera =
                     VecF64::<2>::new(current_pixel.x as f64, current_pixel.y as f64);
             }
-        } else if response.dragged_by(egui::PointerButton::Primary) {
+        } else if !lock_xy_plane && response.dragged_by(egui::PointerButton::Primary) {
             // rotate around scene focus
 
             let scene_focus = self.maybe_scene_focus.unwrap();
@@ -254,16 +264,19 @@ impl OrbitalInteraction {
     }
 
     /// Process event
+    #[allow(clippy::too_many_arguments)]
     pub fn process_event(
         &mut self,
+        active_view: &mut String,
         cam: &RenderIntrinsics,
+        lock_xy_plane: bool,
         response: &egui::Response,
         scales: &ViewportScale,
         view_port_size: ImageSize,
         z_buffer: &ArcImageF32,
     ) {
-        self.process_pointer(cam, response, scales, z_buffer);
-        self.process_scrolls(cam, response, scales, view_port_size, z_buffer);
+        self.process_pointer(active_view, cam, lock_xy_plane, response, scales, z_buffer);
+        self.process_scrolls(active_view, cam, response, scales, view_port_size, z_buffer);
     }
 
     /// Get zoom

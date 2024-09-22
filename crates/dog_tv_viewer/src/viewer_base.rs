@@ -1,4 +1,5 @@
 use crate::interactions::ViewportScale;
+use crate::views::active_view_info::ActiveViewInfo;
 use crate::views::get_adjusted_view_size;
 use crate::views::get_max_size;
 use crate::views::view2d::View2d;
@@ -10,8 +11,13 @@ use dog_tv_renderer::renderables::Packets;
 use dog_tv_renderer::RenderContext;
 use eframe::egui;
 use linked_hash_map::LinkedHashMap;
+use sophus::core::linalg::VecF64;
+use sophus::core::linalg::EPS_F64;
 use sophus::image::arc_image::ArcImageF32;
 use sophus::image::ImageSize;
+use sophus::prelude::HasParams;
+use sophus::prelude::IsTranslationProductGroup;
+use sophus::prelude::IsVector;
 use std::collections::HashMap;
 
 /// Viewer top-level struct.
@@ -22,6 +28,8 @@ pub struct ViewerBase {
     show_depth: bool,
     backface_culling: bool,
     responses: HashMap<String, ResponseStruct>,
+    active_view: String,
+    active_view_info: Option<ActiveViewInfo>,
 }
 
 pub(crate) struct ResponseStruct {
@@ -44,6 +52,8 @@ impl ViewerBase {
             show_depth: false,
             backface_culling: false,
             responses: HashMap::new(),
+            active_view_info: None,
+            active_view: Default::default(),
         }
     }
 
@@ -55,32 +65,104 @@ impl ViewerBase {
     /// Process events.
     pub fn process_events(&mut self) {
         for (view_label, view) in self.views.iter_mut() {
+            let mut view_port_size = ImageSize::default();
             match view {
                 View::View3d(view) => {
                     if let Some(response) = self.responses.get(view_label) {
                         view.interaction.process_event(
+                            &mut self.active_view,
                             &view.intrinsics(),
+                            view.lock_xy_plane,
                             &response.ui_response,
                             &response.scales,
                             response.view_port_size,
                             &response.z_image,
                         );
+                        view_port_size = response.view_port_size
                     }
                 }
                 View::View2d(view) => {
                     if let Some(response) = self.responses.get(view_label) {
                         view.interaction.process_event(
+                            &mut self.active_view,
                             &view.intrinsics(),
+                            true,
                             &response.ui_response,
                             &response.scales,
                             response.view_port_size,
                             &response.z_image,
                         );
+                        view_port_size = response.view_port_size
                     }
                 }
             }
+
+            if view.interaction().is_active() && &self.active_view == view_label {
+                self.active_view_info = Some(ActiveViewInfo {
+                    active_view: view_label.clone(),
+                    scene_from_camera: view.interaction().scene_from_camera(),
+                    camera_properties: view.camera_propterties(),
+                    // is_active, so marker is guaranteed to be Some
+                    scene_focus: view.interaction().marker().unwrap(),
+                    view_type: view.view_type(),
+                    view_port_size,
+                    xy_plane_locked: view.xy_plane_locked(),
+                });
+            }
         }
         self.responses.clear();
+    }
+
+    /// Update bottom status bar
+    pub fn bottom_status_bar(&mut self, ui: &mut egui::Ui) {
+        match self.active_view_info.as_ref() {
+            Some(view_info) => {
+                ui.label(format!(
+                    "{}: {}, view-port: {} x {}, image: {} x {}, clip: [{}, {}], \
+                     focus uv: {:0.1} {:0.1}, depth: {:0.3}",
+                    view_info.view_type,
+                    view_info.active_view,
+                    view_info.view_port_size.width,
+                    view_info.view_port_size.height,
+                    view_info.camera_properties.intrinsics.image_size().width,
+                    view_info.camera_properties.intrinsics.image_size().height,
+                    view_info.camera_properties.clipping_planes.near,
+                    view_info.camera_properties.clipping_planes.far,
+                    view_info.scene_focus.u,
+                    view_info.scene_focus.v,
+                    view_info.scene_focus.metric_depth,
+                ));
+
+                let scene_from_camera_orientation = view_info.scene_from_camera.rotation();
+                let scene_from_camera_quaternion = scene_from_camera_orientation.params();
+                let angle_time_axis = scene_from_camera_orientation.log();
+                let angle_rad = angle_time_axis.norm();
+                let mut axis = VecF64::zeros();
+                if angle_rad >= EPS_F64 {
+                    axis = angle_time_axis.scaled(1.0 / angle_rad);
+                }
+
+                ui.label(format!(
+                    "CAMERA pos: ({:0.3}, {:0.3}, {:0.3}), orient: {:0.1} deg x ({:0.2}, {:0.2}, \
+                     {:0.2}) [q: {:0.4}, ({:0.4}, {:0.4}, {:0.4})], xy-locked: {}",
+                    view_info.scene_from_camera.translation()[0],
+                    view_info.scene_from_camera.translation()[1],
+                    view_info.scene_from_camera.translation()[2],
+                    angle_rad.to_degrees(),
+                    axis[0],
+                    axis[1],
+                    axis[2],
+                    scene_from_camera_quaternion[0],
+                    scene_from_camera_quaternion[1],
+                    scene_from_camera_quaternion[2],
+                    scene_from_camera_quaternion[3],
+                    view_info.xy_plane_locked
+                ));
+            }
+            None => {
+                ui.label("view: n/a");
+            }
+        }
     }
 
     /// Update the left panel.

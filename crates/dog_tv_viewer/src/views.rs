@@ -1,11 +1,15 @@
+/// active_view_info
+pub mod active_view_info;
 /// 2d view
 pub mod view2d;
 /// 3d view
 pub mod view3d;
 
+use crate::interactions::InteractionEnum;
 use crate::views::view2d::View2d;
 use crate::views::view3d::View3d;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
+use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use linked_hash_map::LinkedHashMap;
 use sophus::image::ImageSize;
 
@@ -34,10 +38,38 @@ impl View {
         }
     }
 
+    pub(crate) fn view_type(&mut self) -> String {
+        match self {
+            View::View3d(_) => "V3d".to_owned(),
+            View::View2d(_) => "V2d".to_owned(),
+        }
+    }
+
     pub(crate) fn enabled(&self) -> bool {
         match self {
             View::View3d(view) => view.enabled,
             View::View2d(view) => view.enabled,
+        }
+    }
+
+    pub(crate) fn interaction(&self) -> &InteractionEnum {
+        match self {
+            View::View3d(view) => &view.interaction,
+            View::View2d(view) => &view.interaction,
+        }
+    }
+
+    pub(crate) fn xy_plane_locked(&self) -> bool {
+        match self {
+            View::View3d(view) => view.lock_xy_plane,
+            View::View2d(_) => true,
+        }
+    }
+
+    pub(crate) fn camera_propterties(&self) -> RenderCameraProperties {
+        match self {
+            View::View3d(view) => view.renderer.camera_properties(),
+            View::View2d(view) => view.renderer.camera_properties(),
         }
     }
 }
@@ -112,7 +144,7 @@ pub(crate) fn get_adjusted_view_size(
     max_width: f32,
     max_height: f32,
 ) -> ViewportSize {
-    let width = max_width.min(max_height * view_aspect_ratio);
-    let height = max_height.min(max_width / view_aspect_ratio);
+    let width = 1.0_f32.max(max_width.min(max_height * view_aspect_ratio));
+    let height = 1.0_f32.max(max_height.min(max_width / view_aspect_ratio));
     ViewportSize { width, height }
 }
