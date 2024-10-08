@@ -33,11 +33,10 @@ eframe = {version = "0.28.1", features = ["wgpu"]}
 egui-wgpu = "0.28.1"
 egui_extras = "0.28.1"
 env_logger = "0.11"
-faer = "0.19"
 linked-hash-map = "0.5"
 log = "0.4"
 num-traits = "0.2"
-sophus = {git = "https://github.com/sophus-vision/sophus-rs.git", rev = "bc9a8693dee5dd4886591f8ed2212861413ebf93"}
+sophus = {git = "https://github.com/sophus-vision/sophus-rs.git", rev = "f01c712d510bb2d4134d2ebbd11ad153c15997a5"}
 wgpu = "0.20.1"
 
 [profile.release]
