@@ -1,7 +1,6 @@
 use crate::interactions::SceneFocus;
 use crate::interactions::ViewportScale;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
-use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
 use dog_tv_renderer::types::TranslationAndScaling;
 use eframe::egui;
 use sophus::core::linalg::VecF64;
@@ -82,7 +81,6 @@ impl InplaneInteraction {
             let uv_in_virtual_camera = zoom2d.apply(scales.apply(uv_view_port));
 
             self.maybe_scene_focus = Some(SceneFocus {
-                depth: OffscreenRenderer::BACKGROUND_IMAGE_PLANE,
                 ndc_z: 0.5,
                 uv_in_virtual_camera,
             });

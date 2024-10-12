@@ -114,35 +114,92 @@ impl ViewerBase {
     }
 
     /// Update bottom status bar
-    pub fn bottom_status_bar(&mut self, ui: &mut egui::Ui) {
+    pub fn update_top_bar(&mut self, ui: &mut egui::Ui, _ctx: &egui::Context) {
+        ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
+            egui::CollapsingHeader::new("Settings").show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut self.show_depth, "show depth");
+                    ui.checkbox(&mut self.backface_culling, "backface culling");
+                });
+            });
+
+            let help_button_response = ui.button("❓");
+
+            let popup_id = ui.make_persistent_id("help");
+            if help_button_response.clicked() {
+                ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+            }
+            let below = egui::AboveOrBelow::Below;
+            let close_on_click_outside = egui::popup::PopupCloseBehavior::CloseOnClickOutside;
+            egui::popup::popup_above_or_below_widget(
+                ui,
+                popup_id,
+                &help_button_response,
+                below,
+                close_on_click_outside,
+                |ui| {
+                    ui.set_width(250.0);
+                    ui.label("ROTATE UP/DOWN + LEFT/RIGHT");
+                    ui.label("mouse: left-click drag");
+                    ui.label("touchpad: drag");
+                    ui.label("");
+                    ui.label("PAN UP/DOWN + LEFT/RIGHT");
+                    ui.label("mouse: right-click drag");
+                    ui.label("touchpad: shift + drag (or two finger drag");
+                    ui.label("");
+                    ui.label("ZOOM");
+                    ui.label("mouse: scroll-wheel");
+                    ui.label("touchpad: two finger vertical scroll");
+                    ui.label("");
+                    ui.label("ROTATE IN-PLANE");
+                    ui.label("mouse: shift + scroll-wheel");
+                    ui.label("touchpad: two finger horizontal scroll");
+
+
+                },
+            );
+        });
+    }
+
+    /// Update the left panel.
+    pub fn update_left_panel(&mut self, ui: &mut egui::Ui, _ctx: &egui::Context) {
+        for (view_label, view) in self.views.iter_mut() {
+            ui.checkbox(view.enabled_mut(), view_label);
+        }
+        ui.separator();
+    }
+
+    /// Update bottom status bar
+    pub fn update_bottom_status_bar(&mut self, ui: &mut egui::Ui, _ctx: &egui::Context) {
         match self.active_view_info.as_ref() {
             Some(view_info) => {
-                ui.label(format!(
-                    "{}: {}, view-port: {} x {}, image: {} x {}, clip: [{}, {}], \
-                     focus uv: {:0.1} {:0.1}, depth: {:0.3}",
-                    view_info.view_type,
-                    view_info.active_view,
-                    view_info.view_port_size.width,
-                    view_info.view_port_size.height,
-                    view_info.camera_properties.intrinsics.image_size().width,
-                    view_info.camera_properties.intrinsics.image_size().height,
-                    view_info.camera_properties.clipping_planes.near,
-                    view_info.camera_properties.clipping_planes.far,
-                    view_info.scene_focus.u,
-                    view_info.scene_focus.v,
-                    view_info.scene_focus.metric_depth,
-                ));
+                ui.horizontal_wrapped(|ui| {
+                    ui.label(format!(
+                        "{}: {}, view-port: {} x {}, image: {} x {}, clip: [{}, {}], \
+                     focus uv: {:0.1} {:0.1}, ndc-z: {:0.3}",
+                        view_info.view_type,
+                        view_info.active_view,
+                        view_info.view_port_size.width,
+                        view_info.view_port_size.height,
+                        view_info.camera_properties.intrinsics.image_size().width,
+                        view_info.camera_properties.intrinsics.image_size().height,
+                        view_info.camera_properties.clipping_planes.near,
+                        view_info.camera_properties.clipping_planes.far,
+                        view_info.scene_focus.u,
+                        view_info.scene_focus.v,
+                        view_info.scene_focus.ndc_z,
+                    ));
 
-                let scene_from_camera_orientation = view_info.scene_from_camera.rotation();
-                let scene_from_camera_quaternion = scene_from_camera_orientation.params();
-                let angle_time_axis = scene_from_camera_orientation.log();
-                let angle_rad = angle_time_axis.norm();
-                let mut axis = VecF64::zeros();
-                if angle_rad >= EPS_F64 {
-                    axis = angle_time_axis.scaled(1.0 / angle_rad);
-                }
+                    let scene_from_camera_orientation = view_info.scene_from_camera.rotation();
+                    let scene_from_camera_quaternion = scene_from_camera_orientation.params();
+                    let angle_time_axis = scene_from_camera_orientation.log();
+                    let angle_rad = angle_time_axis.norm();
+                    let mut axis = VecF64::zeros();
+                    if angle_rad >= EPS_F64 {
+                        axis = angle_time_axis.scaled(1.0 / angle_rad);
+                    }
 
-                ui.label(format!(
+                    ui.label(format!(
                     "CAMERA pos: ({:0.3}, {:0.3}, {:0.3}), orient: {:0.1} deg x ({:0.2}, {:0.2}, \
                      {:0.2}) [q: {:0.4}, ({:0.4}, {:0.4}, {:0.4})], xy-locked: {}",
                     view_info.scene_from_camera.translation()[0],
@@ -158,22 +215,12 @@ impl ViewerBase {
                     scene_from_camera_quaternion[3],
                     view_info.xy_plane_locked
                 ));
+                });
             }
             None => {
                 ui.label("view: n/a");
             }
         }
-    }
-
-    /// Update the left panel.
-    pub fn update_left_panel(&mut self, ui: &mut egui::Ui) {
-        for (view_label, view) in self.views.iter_mut() {
-            ui.checkbox(view.enabled_mut(), view_label);
-        }
-        ui.separator();
-        ui.checkbox(&mut self.show_depth, "show depth");
-        ui.checkbox(&mut self.backface_culling, "backface culling");
-        ui.separator();
     }
 
     /// Update the central panel.

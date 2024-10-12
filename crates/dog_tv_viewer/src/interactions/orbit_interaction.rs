@@ -110,18 +110,13 @@ impl OrbitalInteraction {
 
         let scroll_started = self.maybe_scroll_state.is_none() && !is_scroll_zero;
         let scroll_stopped = self.maybe_scroll_state.is_some() && is_scroll_zero;
-
         if scroll_started {
             *active_view = self.view_name.clone();
 
             let uv_in_virtual_camera = scales.apply(uv_viewport);
-            let ndc_z = z_buffer.pixel(uv_viewport.x as usize, uv_viewport.y as usize) as f64;
-            let mut z = self.clipping_planes.metric_z_from_ndc_z(ndc_z);
-            if z >= self.clipping_planes.far {
-                z = self.median_scene_depth(z_buffer);
-            }
+            let ndc_z = self.get_ndc_z(uv_viewport, z_buffer);
+
             self.maybe_scene_focus = Some(SceneFocus {
-                depth: z,
                 ndc_z: ndc_z as f32,
                 uv_in_virtual_camera,
             });
@@ -136,28 +131,40 @@ impl OrbitalInteraction {
 
         let scene_focus = self.maybe_scene_focus.unwrap();
         let pixel = scene_focus.uv_in_virtual_camera;
-        let depth = scene_focus.depth;
+        let depth = scene_focus.metric_depth(&self.clipping_planes);
         let focus_point_in_camera = cam.cam_unproj_with_z(&pixel, depth);
 
         if smooth_scroll_delta.y != 0.0 {
-            // TODO: make sure the zoom is centered around the scene focus
-            let mut scene_from_camera = self.scene_from_camera;
-
+            let scene_from_camera = self.scene_from_camera;
             let camera_in_scene = scene_from_camera.translation();
-            let zoom: f64 = (0.01 * smooth_scroll_delta.y) as f64;
-            let camera_to_focus_point_vec_in_scene =
-                self.scene_from_camera.transform(&focus_point_in_camera) - camera_in_scene;
+            let zoom: f64 = (0.002 * smooth_scroll_delta.y) as f64;
+            let focus_point_in_scene = scene_from_camera.transform(&focus_point_in_camera);
+            let camera_to_focus_point_vec_in_scene = focus_point_in_scene - camera_in_scene;
 
-            let vec = camera_to_focus_point_vec_in_scene * zoom;
+            let new_camera_in_scene = camera_in_scene + camera_to_focus_point_vec_in_scene * zoom;
+            let mut new_scene_from_camera = self.scene_from_camera;
+            new_scene_from_camera.set_translation(&new_camera_in_scene);
 
-            scene_from_camera.set_translation(&(camera_in_scene + vec));
+            let focus_point_in_camera = new_scene_from_camera
+                .inverse()
+                .transform(&focus_point_in_scene);
 
-            self.scene_from_camera = scene_from_camera;
+            let z_in_camera = focus_point_in_camera[2];
+            let ndc_z = self.clipping_planes.ndc_z_from_metric_z(z_in_camera);
+
+            if ndc_z > 0.03 && ndc_z < 0.97 {
+                self.scene_from_camera = new_scene_from_camera;
+
+                self.maybe_scene_focus = Some(SceneFocus {
+                    ndc_z: ndc_z as f32,
+                    uv_in_virtual_camera: pixel,
+                });
+            }
         }
 
         if smooth_scroll_delta.x != 0.0 {
             let delta_z: f64 = (smooth_scroll_delta.x) as f64;
-            let delta = 0.01 * VecF64::<6>::new(0.0, 0.0, 0.0, 0.0, 0.0, delta_z);
+            let delta = 0.002 * VecF64::<6>::new(0.0, 0.0, 0.0, 0.0, 0.0, delta_z);
             let camera_from_scene_point = Isometry3::from_translation(&focus_point_in_camera);
 
             self.scene_from_camera =
@@ -165,6 +172,18 @@ impl OrbitalInteraction {
                     .group_mul(&camera_from_scene_point.group_mul(
                         &Isometry3::exp(&delta).group_mul(&camera_from_scene_point.inverse()),
                     ));
+        }
+    }
+
+    fn get_ndc_z(&self, viewport_pixel: egui::Pos2, z_buffer: &ArcImageF32) -> f64 {
+        let ndc_z = z_buffer.pixel(viewport_pixel.x as usize, viewport_pixel.y as usize) as f64;
+        if ndc_z > 0.99 {
+            match self.maybe_scene_focus {
+                Some(scene_focus) => scene_focus.ndc_z as f64,
+                None => self.median_scene_depth(z_buffer),
+            }
+        } else {
+            ndc_z.clamp(0.01, 0.99)
         }
     }
 
@@ -199,14 +218,9 @@ impl OrbitalInteraction {
 
             let uv_in_virtual_camera = scales.apply(uv_viewport);
 
-            let ndc_z = z_buffer.pixel(uv_viewport.x as usize, uv_viewport.y as usize) as f64;
-            let mut z = self.clipping_planes.metric_z_from_ndc_z(ndc_z);
+            let ndc_z = self.get_ndc_z(uv_viewport, z_buffer);
 
-            if z >= self.clipping_planes.far {
-                z = self.median_scene_depth(z_buffer);
-            }
             self.maybe_scene_focus = Some(SceneFocus {
-                depth: z,
                 ndc_z: ndc_z as f32,
                 uv_in_virtual_camera,
             });
@@ -218,14 +232,17 @@ impl OrbitalInteraction {
             self.maybe_pointer_state = None;
         };
 
-        if response.dragged_by(egui::PointerButton::Secondary) {
+        if response.dragged_by(egui::PointerButton::Secondary)
+            || (response.dragged_by(egui::PointerButton::Primary)
+                && response.ctx.input(|i| i.modifiers.shift))
+        {
             // translate scene
 
             let uv_viewport = response.interact_pointer_pos().unwrap() - response.rect.min;
             let current_pixel = scales.apply(uv_viewport.to_pos2()).cast::<f32>();
             let scene_focus = self.maybe_scene_focus.unwrap();
             let start_pixel = self.maybe_pointer_state.unwrap().start_uv_virtual_camera;
-            let depth = scene_focus.depth;
+            let depth = scene_focus.metric_depth(&self.clipping_planes);
             let p0 = cam.cam_unproj_with_z(&start_pixel, depth);
             let p1 = cam.cam_unproj_with_z(
                 &VecF64::<2>::new(
@@ -250,7 +267,7 @@ impl OrbitalInteraction {
 
             let scene_focus = self.maybe_scene_focus.unwrap();
             let pixel = scene_focus.uv_in_virtual_camera;
-            let depth = scene_focus.depth;
+            let depth = scene_focus.metric_depth(&self.clipping_planes);
             let delta =
                 0.01 * VecF64::<6>::new(0.0, 0.0, 0.0, -delta_y as f64, delta_x as f64, 0.0);
             let camera_from_scene_point =

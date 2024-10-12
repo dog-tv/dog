@@ -6,6 +6,7 @@ pub mod orbit_interaction;
 use crate::interactions::inplane_interaction::InplaneInteraction;
 use crate::interactions::orbit_interaction::OrbitalInteraction;
 use crate::views::ViewportSize;
+use dog_tv_renderer::camera::clipping_planes::ClippingPlanesF64;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
 use dog_tv_renderer::renderables::color::Color;
 use dog_tv_renderer::textures::depth_image::ndc_z_to_color;
@@ -131,7 +132,7 @@ impl InteractionEnum {
                     },
                     u: scene_focus.uv_in_virtual_camera[0] as f32,
                     v: scene_focus.uv_in_virtual_camera[1] as f32,
-                    metric_depth: scene_focus.depth,
+                    ndc_z: scene_focus.ndc_z,
                 })
             }
             false => None,
@@ -140,12 +141,17 @@ impl InteractionEnum {
 }
 
 /// Scene focus
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct SceneFocus {
-    /// Metric epth
-    pub depth: f64,
     /// NDC z
     pub ndc_z: f32,
     /// UV position
     pub uv_in_virtual_camera: VecF64<2>,
+}
+
+impl SceneFocus {
+    /// metric depth
+    pub fn metric_depth(&self, clipping_planes: &ClippingPlanesF64) -> f64 {
+        clipping_planes.metric_z_from_ndc_z(self.ndc_z as f64)
+    }
 }
