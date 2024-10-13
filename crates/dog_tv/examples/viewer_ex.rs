@@ -165,15 +165,9 @@ pub async fn run_viewer_example() {
         message_tx.send(packets).unwrap();
     });
 
-    let options = eframe::NativeOptions {
-        viewport: eframe::egui::ViewportBuilder::default().with_inner_size([850.0, 480.0]),
-        renderer: eframe::Renderer::Wgpu,
-
-        ..Default::default()
-    };
     eframe::run_native(
         "Viewer Example",
-        options,
+        dog_tv_viewer::recommened_eframe_native_options(),
         Box::new(|cc| {
             Ok(SimpleViewer::new(
                 RenderContext::from_egui_cc(cc),

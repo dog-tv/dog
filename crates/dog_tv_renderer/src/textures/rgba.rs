@@ -1,5 +1,6 @@
 use core::f32;
 
+use crate::types::DOG_MULTISAMPLE_COUNT;
 use crate::RenderContext;
 use eframe::egui::{self};
 use sophus::image::arc_image::ArcImage4U16;
@@ -12,14 +13,18 @@ use wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
 /// rgba texture
 #[derive(Debug)]
 pub struct RgbdTexture {
+    /// multisample render target - first render pass
+    pub multisample_texture: wgpu::Texture,
+    /// multisample texture view - first render pass
+    pub multisample_texture_view: wgpu::TextureView,
+    /// rgba texture - first render pass
+    pub resolved_texture: wgpu::Texture,
+    /// rgba texture view - first render pass
+    pub resolved_texture_view: wgpu::TextureView,
     /// rgba texture
-    pub rgba_texture: wgpu::Texture,
-    /// rgba texture view
-    pub rgba_texture_view: wgpu::TextureView,
-    /// rgba texture
-    pub rgba_texture_distorted: wgpu::Texture,
+    pub final_texture: wgpu::Texture,
     /// rgba texture view distorted
-    pub rgba_texture_view_distorted: wgpu::TextureView,
+    pub final_texture_view: wgpu::TextureView,
     pub(crate) egui_tex_id: egui::TextureId,
 }
 
@@ -55,10 +60,33 @@ impl RgbdTexture {
         let w = view_port_size.width as u32;
         let h = view_port_size.height as u32;
 
-        let render_target = render_state
+        let multisample_texture =
+            render_state
+                .wgpu_device
+                .create_texture(&wgpu::TextureDescriptor {
+                    label: Some("rgba multisample texture"),
+                    size: wgpu::Extent3d {
+                        width: w,
+                        height: h,
+                        depth_or_array_layers: 1,
+                    },
+                    mip_level_count: 1,
+                    sample_count: DOG_MULTISAMPLE_COUNT,
+                    dimension: wgpu::TextureDimension::D2,
+                    format: wgpu::TextureFormat::Rgba8Unorm,
+                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                        | wgpu::TextureUsages::COPY_SRC
+                        | wgpu::TextureUsages::TEXTURE_BINDING,
+                    view_formats: &[wgpu::TextureFormat::Rgba8UnormSrgb],
+                });
+
+        let multisample_texture_view =
+            multisample_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        let resolved_texture = render_state
             .wgpu_device
             .create_texture(&wgpu::TextureDescriptor {
-                label: None,
+                label: Some("rgba resolved texture"),
                 size: wgpu::Extent3d {
                     width: w,
                     height: h,
@@ -67,54 +95,55 @@ impl RgbdTexture {
                 mip_level_count: 1,
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba32Float,
+                format: wgpu::TextureFormat::Rgba8Unorm,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                     | wgpu::TextureUsages::COPY_SRC
                     | wgpu::TextureUsages::TEXTURE_BINDING,
-                view_formats: &[wgpu::TextureFormat::Rgba32Float],
+                view_formats: &[wgpu::TextureFormat::Rgba8UnormSrgb],
             });
 
-        let texture_view = render_target.create_view(&wgpu::TextureViewDescriptor::default());
+        let resolved_texture_view =
+            resolved_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-        let render_target_distorted =
-            render_state
-                .wgpu_device
-                .create_texture(&wgpu::TextureDescriptor {
-                    label: None,
-                    size: wgpu::Extent3d {
-                        width: w,
-                        height: h,
-                        depth_or_array_layers: 1,
-                    },
-                    mip_level_count: 1,
-                    sample_count: 1,
-                    dimension: wgpu::TextureDimension::D2,
-                    format: wgpu::TextureFormat::Rgba8Unorm,
-                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT
-                        | wgpu::TextureUsages::COPY_SRC
-                        | wgpu::TextureUsages::TEXTURE_BINDING
-                        | wgpu::TextureUsages::STORAGE_BINDING,
-                    view_formats: &[wgpu::TextureFormat::Rgba8UnormSrgb],
-                });
+        let final_texture = render_state
+            .wgpu_device
+            .create_texture(&wgpu::TextureDescriptor {
+                label: Some("rgba final texture"),
+                size: wgpu::Extent3d {
+                    width: w,
+                    height: h,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8Unorm,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::COPY_SRC
+                    | wgpu::TextureUsages::TEXTURE_BINDING
+                    | wgpu::TextureUsages::STORAGE_BINDING,
+                view_formats: &[wgpu::TextureFormat::Rgba8UnormSrgb],
+            });
 
-        let texture_view_distorted =
-            render_target_distorted.create_view(&wgpu::TextureViewDescriptor::default());
+        let final_texture_view = final_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-        let tex_id = render_state
+        let egui_tex_id = render_state
             .egui_wgpu_renderer
             .write()
             .register_native_texture(
                 render_state.wgpu_device.as_ref(),
-                &texture_view_distorted,
+                &final_texture_view,
                 wgpu::FilterMode::Linear,
             );
 
         RgbdTexture {
-            rgba_texture: render_target,
-            rgba_texture_view: texture_view,
-            rgba_texture_distorted: render_target_distorted,
-            rgba_texture_view_distorted: texture_view_distorted,
-            egui_tex_id: tex_id,
+            multisample_texture,
+            multisample_texture_view,
+            final_texture,
+            final_texture_view,
+            egui_tex_id,
+            resolved_texture,
+            resolved_texture_view,
         }
     }
 
@@ -138,7 +167,7 @@ impl RgbdTexture {
 
         command_encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
-                texture: &self.rgba_texture_distorted,
+                texture: &self.final_texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,

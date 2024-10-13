@@ -234,7 +234,7 @@ impl OrbitalInteraction {
 
         if response.dragged_by(egui::PointerButton::Secondary)
             || (response.dragged_by(egui::PointerButton::Primary)
-                && response.ctx.input(|i| i.modifiers.shift))
+                && response.ctx.input(|i| i.pointer.secondary_pressed()))
         {
             // translate scene
 

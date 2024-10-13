@@ -8,7 +8,7 @@ var<uniform> pinhole: PinholeModel;
 @group(1) @binding(0) var input_texture : texture_2d<f32>;
 @group(1) @binding(1) var output_texture : texture_storage_2d<rgba8unorm, write>;
 @group(1) @binding(2) var background_texture : texture_2d<f32>;
-@group(1) @binding(3) var depth_texture : texture_2d<f32>;
+@group(1) @binding(3) var depth_texture : texture_multisampled_2d<f32>;
 @group(1) @binding(4) var distorted_depth_texture : texture_storage_2d<r32float, write>;
 
  fn distort_pixel(
@@ -41,8 +41,9 @@ var<uniform> pinhole: PinholeModel;
             ty
         );
 
-        // depth lookup without interpolation
-        let depth = textureLoad(depth_texture,  vec2<u32>(view_port_coords_undistorted), 0);
+        // depth lookup without interpolation, and also just the first sample
+        // todo: use the correct sample, or min over all samples
+        let ndc_z = textureLoad(depth_texture,  vec2<u32>(view_port_coords_undistorted), 0);
 
         // Use the alpha channel of the foreground for blending
         let alpha = foreground_color.a;
@@ -52,7 +53,7 @@ var<uniform> pinhole: PinholeModel;
             1.0 // Keep the output fully opaque
         );
 
-        textureStore(distorted_depth_texture, view_port_coords_distorted, depth);
+        textureStore(distorted_depth_texture, view_port_coords_distorted, ndc_z);
         textureStore(output_texture, view_port_coords_distorted, mixed);
     }
 

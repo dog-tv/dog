@@ -32,9 +32,11 @@ impl eframe::App for SimpleViewer {
             self.base.update_left_panel(ui, ctx);
         });
 
-        egui::TopBottomPanel::bottom("bottom").max_height(32.0).show(ctx, |ui| {
-            self.base.update_bottom_status_bar(ui, ctx);
-        });
+        egui::TopBottomPanel::bottom("bottom")
+            .max_height(32.0)
+            .show(ctx, |ui| {
+                self.base.update_bottom_status_bar(ui, ctx);
+            });
 
         // central pane must be always created last
         egui::CentralPanel::default().show(ctx, |ui| {

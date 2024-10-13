@@ -14,6 +14,7 @@ use crate::pipeline_builder::TargetTexture;
 use crate::scene_renderer::mesh::MeshRenderer;
 use crate::scene_renderer::point::ScenePointRenderer;
 use crate::textures::depth::DepthTextures;
+use crate::textures::rgba::RgbdTexture;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
 use sophus::lie::Isometry3F64;
@@ -44,7 +45,7 @@ impl SceneRenderer {
         let scene_pipeline_builder = PipelineBuilder::new_scene(
             render_context,
             Arc::new(TargetTexture {
-                rgba_output_format: wgpu::TextureFormat::Rgba32Float,
+                rgba_output_format: wgpu::TextureFormat::Rgba8Unorm,
             }),
             uniforms.clone(),
             depth_stencil,
@@ -67,15 +68,15 @@ impl SceneRenderer {
         state: &RenderContext,
         scene_from_camera: &Isometry3F64,
         command_encoder: &'rp mut wgpu::CommandEncoder,
-        texture_view: &'rp wgpu::TextureView,
+        rgba: &'rp RgbdTexture,
         depth: &DepthTextures,
         backface_culling: bool,
     ) {
         let mut render_pass = command_encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: texture_view,
-                resolve_target: None,
+                view: &rgba.multisample_texture_view,
+                resolve_target: Some(&rgba.resolved_texture_view),
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
                         r: 0.0,
@@ -87,7 +88,7 @@ impl SceneRenderer {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: &depth.main_render_ndc_z_texture.ndc_z_texture_view,
+                view: &depth.main_render_ndc_z_texture.multisample_texture_view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.0),
                     store: wgpu::StoreOp::Store,

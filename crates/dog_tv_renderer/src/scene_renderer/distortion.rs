@@ -63,7 +63,7 @@ impl DistortionRenderer {
             ty: wgpu::BindingType::Texture {
                 sample_type: wgpu::TextureSampleType::Float { filterable: false },
                 view_dimension: wgpu::TextureViewDimension::D2,
-                multisampled: false,
+                multisampled: true,
             },
             count: None,
         });
@@ -96,11 +96,11 @@ impl DistortionRenderer {
         let mut vec = vec![
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::TextureView(&rgba.rgba_texture_view),
+                resource: wgpu::BindingResource::TextureView(&rgba.resolved_texture_view),
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::TextureView(&rgba.rgba_texture_view_distorted),
+                resource: wgpu::BindingResource::TextureView(&rgba.final_texture_view),
             },
         ];
 
@@ -113,13 +113,13 @@ impl DistortionRenderer {
             vec.push(wgpu::BindGroupEntry {
                 binding: 3,
                 resource: wgpu::BindingResource::TextureView(
-                    &depth.main_render_ndc_z_texture.ndc_z_texture_view,
+                    &depth.main_render_ndc_z_texture.multisample_texture_view,
                 ),
             });
             vec.push(wgpu::BindGroupEntry {
                 binding: 4,
                 resource: wgpu::BindingResource::TextureView(
-                    &depth.main_render_ndc_z_texture.z_distorted_texture_view,
+                    &depth.main_render_ndc_z_texture.final_texture_view,
                 ),
             });
 
@@ -135,13 +135,13 @@ impl DistortionRenderer {
         vec.push(wgpu::BindGroupEntry {
             binding: 3,
             resource: wgpu::BindingResource::TextureView(
-                &depth.main_render_ndc_z_texture.ndc_z_texture_view,
+                &depth.main_render_ndc_z_texture.multisample_texture_view,
             ),
         });
         vec.push(wgpu::BindGroupEntry {
             binding: 4,
             resource: wgpu::BindingResource::TextureView(
-                &depth.main_render_ndc_z_texture.z_distorted_texture_view,
+                &depth.main_render_ndc_z_texture.final_texture_view,
             ),
         });
 

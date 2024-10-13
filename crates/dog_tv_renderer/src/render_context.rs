@@ -2,6 +2,8 @@ use eframe::egui_wgpu;
 use eframe::epaint::mutex::RwLock;
 use std::sync::Arc;
 
+use crate::types::DOG_MULTISAMPLE_COUNT;
+
 /// The render context
 #[derive(Clone)]
 pub struct RenderContext {
@@ -46,7 +48,12 @@ impl RenderContext {
             .await
             .unwrap();
 
-        let renderer = egui_wgpu::Renderer::new(&device, wgpu::TextureFormat::Rgba8Unorm, None, 1);
+        let renderer = egui_wgpu::Renderer::new(
+            &device,
+            wgpu::TextureFormat::Rgba8Unorm,
+            None,
+            DOG_MULTISAMPLE_COUNT,
+        );
 
         RenderContext {
             egui_wgpu_renderer: Arc::new(RwLock::new(renderer)),

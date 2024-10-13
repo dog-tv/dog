@@ -1,3 +1,4 @@
+use crate::types::DOG_MULTISAMPLE_COUNT;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
 use bytemuck::Pod;
@@ -224,7 +225,14 @@ impl PipelineBuilder {
                 ..Default::default()
             },
             depth_stencil: self.depth_stencil.clone(),
-            multisample: wgpu::MultisampleState::default(),
+            multisample: match self.pipeline_type {
+                PipelineType::Scene => wgpu::MultisampleState {
+                    count: DOG_MULTISAMPLE_COUNT,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                PipelineType::Pixel => Default::default(),
+            },
             multiview: None,
         })
     }

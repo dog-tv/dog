@@ -11,3 +11,13 @@ pub mod simple_viewer;
 pub mod viewer_base;
 /// The view struct.
 pub mod views;
+
+/// eframe native options - recommended for use with the dog-tv
+pub fn recommened_eframe_native_options() -> eframe::NativeOptions {
+    eframe::NativeOptions {
+        viewport: eframe::egui::ViewportBuilder::default().with_inner_size([850.0, 480.0]),
+        renderer: eframe::Renderer::Wgpu,
+        multisampling: dog_tv_renderer::types::DOG_MULTISAMPLE_COUNT as u16,
+        ..Default::default()
+    }
+}

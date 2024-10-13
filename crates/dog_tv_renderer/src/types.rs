@@ -90,3 +90,6 @@ pub struct SceneFocusMarker {
     /// ndc_z
     pub ndc_z: f32,
 }
+
+/// multisample count
+pub const DOG_MULTISAMPLE_COUNT: u32 = 4;

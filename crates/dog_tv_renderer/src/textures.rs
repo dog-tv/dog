@@ -3,15 +3,15 @@ use crate::textures::rgba::RgbdTexture;
 use crate::RenderContext;
 use sophus::image::ImageSize;
 
-/// Depth textures.
+/// depth textures
 pub mod depth;
 /// depth image
 pub mod depth_image;
-/// Main render z buffer texture.
-pub mod main_render_z_buffer;
-/// RGBA texture.
+/// NDC z buffer textures
+pub mod ndc_z_buffer;
+/// RGBA textures
 pub mod rgba;
-/// Visual depth texture.
+/// Visual depth texture
 pub mod visual_depth;
 
 #[derive(Debug)]

@@ -145,7 +145,7 @@ impl ViewerBase {
                     ui.label("");
                     ui.label("PAN UP/DOWN + LEFT/RIGHT");
                     ui.label("mouse: right-click drag");
-                    ui.label("touchpad: shift + drag (or two finger drag");
+                    ui.label("touchpad: two finger drag** / shift + drag");
                     ui.label("");
                     ui.label("ZOOM");
                     ui.label("mouse: scroll-wheel");
@@ -154,8 +154,8 @@ impl ViewerBase {
                     ui.label("ROTATE IN-PLANE");
                     ui.label("mouse: shift + scroll-wheel");
                     ui.label("touchpad: two finger horizontal scroll");
-
-
+                    ui.label("");
+                    ui.label("** Does not work on all touchpads.");
                 },
             );
         });

@@ -279,7 +279,7 @@ impl OffscreenRenderer {
             &self.render_context,
             &params.scene_from_camera,
             &mut command_encoder,
-            &self.textures.rgbd.rgba_texture_view,
+            &self.textures.rgbd,
             &self.textures.depth,
             params.backface_culling,
         );
@@ -306,10 +306,8 @@ impl OffscreenRenderer {
             .wgpu_device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
 
-        self.pixel.paint(
-            &mut command_encoder,
-            &self.textures.rgbd.rgba_texture_view_distorted,
-        );
+        self.pixel
+            .paint(&mut command_encoder, &self.textures.rgbd.final_texture_view);
 
         let depth_image = self.textures.depth.download_depth_image(
             &self.render_context,

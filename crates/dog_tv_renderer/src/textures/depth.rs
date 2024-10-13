@@ -1,6 +1,6 @@
 use crate::camera::clipping_planes::ClippingPlanesF64;
 use crate::textures::depth_image::DepthImage;
-use crate::textures::main_render_z_buffer::MainRenderZBuffer;
+use crate::textures::ndc_z_buffer::NdcZBuffer;
 use crate::textures::visual_depth::VisualDepthTexture;
 use crate::RenderContext;
 use sophus::core::IsTensorLike;
@@ -12,7 +12,7 @@ use wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
 
 #[derive(Debug)]
 pub(crate) struct DepthTextures {
-    pub(crate) main_render_ndc_z_texture: MainRenderZBuffer,
+    pub(crate) main_render_ndc_z_texture: NdcZBuffer,
     pub(crate) staging_buffer: wgpu::Buffer,
     pub(crate) visual_depth_texture: VisualDepthTexture,
 }
@@ -46,7 +46,7 @@ impl DepthTextures {
 
         DepthTextures {
             staging_buffer,
-            main_render_ndc_z_texture: MainRenderZBuffer::new(render_state, view_port_size),
+            main_render_ndc_z_texture: NdcZBuffer::new(render_state, view_port_size),
             visual_depth_texture: VisualDepthTexture::new(render_state, view_port_size),
         }
     }
@@ -88,7 +88,7 @@ impl DepthTextures {
         // Copy depth texture to staging buffer
         command_encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
-                texture: &self.main_render_ndc_z_texture.z_distorted_texture,
+                texture: &self.main_render_ndc_z_texture.final_texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
