@@ -1,8 +1,6 @@
 use sophus::core::linalg::SVec;
 
 use crate::renderables::color::Color;
-use crate::renderables::frame::Frame;
-use crate::renderables::renderable3d::Renderable3d;
 
 /// View3d renderable
 #[derive(Clone, Debug)]
@@ -73,25 +71,6 @@ pub fn make_point2(
         });
     }
     Renderable2d::Point(cloud)
-}
-
-/// Packet of image renderables
-#[derive(Clone, Debug)]
-pub struct View2dPacket {
-    /// Frame to hold content
-    ///
-    ///  1. For each `view_label`, content (i.e. renderables2d, renderables3d) will be added to
-    ///     the existing frame. If no frame exists yet, e.g. frame was always None for `view_label`,
-    ///     the content is ignored.
-    ///  2. If we have a new frame, that is `frame == Some(...)`, all previous content is deleted, but
-    ///     content from this packet will be added.
-    pub frame: Option<Frame>,
-    /// List of 2d renderables
-    pub renderables2d: Vec<Renderable2d>,
-    /// List of 3d renderables
-    pub renderables3d: Vec<Renderable3d>,
-    /// Name of the view
-    pub view_label: String,
 }
 
 /// Can be converted to Vec2F32

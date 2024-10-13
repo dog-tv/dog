@@ -79,6 +79,9 @@ impl InteractionEnum {
 
     /// Is there a current interaction?
     pub fn is_active(&self) -> bool {
+        if self.maybe_scene_focus().is_none() {
+            return false;
+        }
         match self {
             InteractionEnum::Orbital(orbital) => {
                 orbital.maybe_pointer_state.is_some() || orbital.maybe_scroll_state.is_some()

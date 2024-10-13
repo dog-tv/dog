@@ -1,13 +1,13 @@
 /// active_view_info
 pub mod active_view_info;
 /// 2d view
-pub mod view2d;
+pub mod image_view;
 /// 3d view
-pub mod view3d;
+pub mod scene_view;
 
 use crate::interactions::InteractionEnum;
-use crate::views::view2d::View2d;
-use crate::views::view3d::View3d;
+use crate::views::image_view::ImageView;
+use crate::views::scene_view::SceneView;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use linked_hash_map::LinkedHashMap;
@@ -15,17 +15,17 @@ use sophus::image::ImageSize;
 
 /// The view enum.
 pub(crate) enum View {
-    /// 3D view
-    View3d(View3d),
-    /// Image view
-    View2d(View2d),
+    /// view of a 3d scene - optionally locked to 2d birds eye view
+    SceneView(SceneView),
+    /// view of a 2d image or empty image canvas - with potential 2d pixel and 3d scene overlay
+    ImageView(ImageView),
 }
 
 impl HasAspectRatio for View {
     fn aspect_ratio(&self) -> f32 {
         match self {
-            View::View3d(view) => view.aspect_ratio(),
-            View::View2d(view) => view.aspect_ratio(),
+            View::SceneView(view) => view.aspect_ratio(),
+            View::ImageView(view) => view.aspect_ratio(),
         }
     }
 }
@@ -33,43 +33,43 @@ impl HasAspectRatio for View {
 impl View {
     pub(crate) fn enabled_mut(&mut self) -> &mut bool {
         match self {
-            View::View3d(view) => &mut view.enabled,
-            View::View2d(view) => &mut view.enabled,
+            View::SceneView(view) => &mut view.enabled,
+            View::ImageView(view) => &mut view.enabled,
         }
     }
 
     pub(crate) fn view_type(&mut self) -> String {
         match self {
-            View::View3d(_) => "V3d".to_owned(),
-            View::View2d(_) => "V2d".to_owned(),
+            View::SceneView(_) => "Scene".to_owned(),
+            View::ImageView(_) => "Image".to_owned(),
         }
     }
 
     pub(crate) fn enabled(&self) -> bool {
         match self {
-            View::View3d(view) => view.enabled,
-            View::View2d(view) => view.enabled,
+            View::SceneView(view) => view.enabled,
+            View::ImageView(view) => view.enabled,
         }
     }
 
     pub(crate) fn interaction(&self) -> &InteractionEnum {
         match self {
-            View::View3d(view) => &view.interaction,
-            View::View2d(view) => &view.interaction,
+            View::SceneView(view) => &view.interaction,
+            View::ImageView(view) => &view.interaction,
         }
     }
 
-    pub(crate) fn xy_plane_locked(&self) -> bool {
+    pub(crate) fn locked_to_birds_eye_view(&self) -> bool {
         match self {
-            View::View3d(view) => view.lock_xy_plane,
-            View::View2d(_) => true,
+            View::SceneView(view) => view.lock_xy_plane,
+            View::ImageView(_) => true,
         }
     }
 
     pub(crate) fn camera_propterties(&self) -> RenderCameraProperties {
         match self {
-            View::View3d(view) => view.renderer.camera_properties(),
-            View::View2d(view) => view.renderer.camera_properties(),
+            View::SceneView(view) => view.renderer.camera_properties(),
+            View::ImageView(view) => view.renderer.camera_properties(),
         }
     }
 }

@@ -12,9 +12,7 @@ use sophus::image::arc_image::ArcImage4U8;
 use crate::camera::RenderCamera;
 use crate::renderables::frame::Frame;
 use crate::renderables::renderable2d::Renderable2d;
-use crate::renderables::renderable2d::View2dPacket;
 use crate::renderables::renderable3d::Renderable3d;
-use crate::renderables::renderable3d::View3dPacket;
 
 /// Image view renderable
 #[derive(Clone, Debug)]
@@ -26,10 +24,10 @@ pub enum ImageViewRenderable {
 /// Packet of renderables
 #[derive(Clone, Debug)]
 pub enum Packet {
-    /// View3d packet
-    View3d(View3dPacket),
-    /// View2d packet
-    View2d(View2dPacket),
+    /// scene view packet
+    Scene(SceneViewPacket),
+    /// image view packet
+    Image(ImageViewPacket),
 }
 
 /// Packet of renderables
@@ -46,7 +44,7 @@ pub fn make_view2d_packet(
     renderables2d: Vec<Renderable2d>,
     renderables3d: Vec<Renderable3d>,
 ) -> Packet {
-    Packet::View2d(View2dPacket {
+    Packet::Image(ImageViewPacket {
         frame,
         renderables2d,
         renderables3d,
@@ -60,7 +58,7 @@ pub fn make_view3d_packet(
     initial_camera: RenderCamera,
     renderables3d: Vec<Renderable3d>,
 ) -> Packet {
-    Packet::View3d(View3dPacket {
+    Packet::Scene(SceneViewPacket {
         initial_camera,
         view_label: view_label.to_owned(),
         renderables3d,
@@ -74,10 +72,42 @@ pub fn make_view3d_packet_xy_locked(
     initial_camera: RenderCamera,
     renderables3d: Vec<Renderable3d>,
 ) -> Packet {
-    Packet::View3d(View3dPacket {
+    Packet::Scene(SceneViewPacket {
         initial_camera,
         view_label: view_label.to_owned(),
         renderables3d,
         lock_xy_plane: true,
     })
+}
+
+/// Packet to populate an image view
+#[derive(Clone, Debug)]
+pub struct ImageViewPacket {
+    /// Frame to hold content
+    ///
+    ///  1. For each `view_label`, content (i.e. renderables2d, renderables3d) will be added to
+    ///     the existing frame. If no frame exists yet, e.g. frame was always None for `view_label`,
+    ///     the content is ignored.
+    ///  2. If we have a new frame, that is `frame == Some(...)`, all previous content is deleted, but
+    ///     content from this packet will be added.
+    pub frame: Option<Frame>,
+    /// List of 2d renderables
+    pub renderables2d: Vec<Renderable2d>,
+    /// List of 3d renderables
+    pub renderables3d: Vec<Renderable3d>,
+    /// Name of the view
+    pub view_label: String,
+}
+
+/// Packet to populate a scene view
+#[derive(Clone, Debug)]
+pub struct SceneViewPacket {
+    /// List of 3d renderables
+    pub renderables3d: Vec<Renderable3d>,
+    /// Name of the view
+    pub view_label: String,
+    /// Initial camera, ignored if not the first packet for this view
+    pub initial_camera: RenderCamera,
+    /// lock xy plane
+    pub lock_xy_plane: bool,
 }

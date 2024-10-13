@@ -1,4 +1,3 @@
-use crate::camera::RenderCamera;
 use crate::renderables::color::Color;
 use crate::renderables::renderable2d::HasToVec2F32;
 use sophus::core::linalg::SVec;
@@ -221,19 +220,6 @@ pub fn make_textured_mesh3(
     arr: &[[(impl HasToVec3F32, impl HasToVec2F32); 3]],
 ) -> TexturedTriangleMesh3 {
     make_textured_mesh3_at(name, arr, Isometry3::identity())
-}
-
-/// Packet of view3d renderables
-#[derive(Clone, Debug)]
-pub struct View3dPacket {
-    /// List of 3d renderables
-    pub renderables3d: Vec<Renderable3d>,
-    /// Name of the view
-    pub view_label: String,
-    /// Initial camera, ignored if not the first packet of "view_name"
-    pub initial_camera: RenderCamera,
-    /// lock xy plane
-    pub lock_xy_plane: bool,
 }
 
 /// 3D line

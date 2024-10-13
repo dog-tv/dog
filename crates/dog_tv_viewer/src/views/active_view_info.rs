@@ -18,5 +18,5 @@ pub struct ActiveViewInfo {
     /// view-port size
     pub view_port_size: ImageSize,
     /// xy-locked
-    pub xy_plane_locked: bool,
+    pub locked_to_birds_eye_view: bool,
 }

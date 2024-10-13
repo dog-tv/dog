@@ -4,20 +4,20 @@ use crate::views::View;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
 use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
-use dog_tv_renderer::renderables::renderable2d::View2dPacket;
+use dog_tv_renderer::renderables::ImageViewPacket;
 use dog_tv_renderer::RenderContext;
 use linked_hash_map::LinkedHashMap;
 
-pub(crate) struct View2d {
+pub(crate) struct ImageView {
     pub(crate) renderer: OffscreenRenderer,
     pub(crate) interaction: InteractionEnum,
     pub(crate) enabled: bool,
 }
 
-impl View2d {
+impl ImageView {
     fn create_if_new(
         views: &mut LinkedHashMap<String, View>,
-        packet: &View2dPacket,
+        packet: &ImageViewPacket,
         state: &RenderContext,
     ) -> bool {
         if views.contains_key(&packet.view_label) {
@@ -26,7 +26,7 @@ impl View2d {
         if let Some(frame) = &packet.frame {
             views.insert(
                 packet.view_label.clone(),
-                View::View2d(View2d {
+                View::ImageView(ImageView {
                     renderer: OffscreenRenderer::new(state, frame.camera_properties()),
                     interaction: InteractionEnum::InPlane(InplaneInteraction::new(
                         &packet.view_label,
@@ -42,14 +42,14 @@ impl View2d {
 
     pub fn update(
         views: &mut LinkedHashMap<String, View>,
-        packet: View2dPacket,
+        packet: ImageViewPacket,
         state: &RenderContext,
     ) {
         Self::create_if_new(views, &packet, state);
         let view = views.get_mut(&packet.view_label).unwrap();
 
         let view = match view {
-            View::View2d(view) => view,
+            View::ImageView(view) => view,
             _ => panic!("View type mismatch"),
         };
 
@@ -67,7 +67,7 @@ impl View2d {
 
         let view = views.get_mut(&packet.view_label).unwrap();
         let view = match view {
-            View::View2d(view) => view,
+            View::ImageView(view) => view,
             _ => panic!("View type mismatch"),
         };
 
@@ -80,7 +80,7 @@ impl View2d {
     }
 }
 
-impl HasAspectRatio for View2d {
+impl HasAspectRatio for ImageView {
     fn aspect_ratio(&self) -> f32 {
         self.renderer.aspect_ratio()
     }

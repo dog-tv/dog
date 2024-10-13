@@ -2,8 +2,8 @@ use crate::interactions::ViewportScale;
 use crate::views::active_view_info::ActiveViewInfo;
 use crate::views::get_adjusted_view_size;
 use crate::views::get_max_size;
-use crate::views::view2d::View2d;
-use crate::views::view3d::View3d;
+use crate::views::image_view::ImageView;
+use crate::views::scene_view::SceneView;
 use crate::views::View;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::renderables::Packet;
@@ -11,13 +11,10 @@ use dog_tv_renderer::renderables::Packets;
 use dog_tv_renderer::RenderContext;
 use eframe::egui;
 use linked_hash_map::LinkedHashMap;
-use sophus::core::linalg::VecF64;
-use sophus::core::linalg::EPS_F64;
 use sophus::image::arc_image::ArcImageF32;
 use sophus::image::ImageSize;
 use sophus::prelude::HasParams;
 use sophus::prelude::IsTranslationProductGroup;
-use sophus::prelude::IsVector;
 use std::collections::HashMap;
 
 /// Viewer top-level struct.
@@ -67,7 +64,7 @@ impl ViewerBase {
         for (view_label, view) in self.views.iter_mut() {
             let mut view_port_size = ImageSize::default();
             match view {
-                View::View3d(view) => {
+                View::SceneView(view) => {
                     if let Some(response) = self.responses.get(view_label) {
                         view.interaction.process_event(
                             &mut self.active_view,
@@ -81,7 +78,7 @@ impl ViewerBase {
                         view_port_size = response.view_port_size
                     }
                 }
-                View::View2d(view) => {
+                View::ImageView(view) => {
                     if let Some(response) = self.responses.get(view_label) {
                         view.interaction.process_event(
                             &mut self.active_view,
@@ -106,7 +103,7 @@ impl ViewerBase {
                     scene_focus: view.interaction().marker().unwrap(),
                     view_type: view.view_type(),
                     view_port_size,
-                    xy_plane_locked: view.xy_plane_locked(),
+                    locked_to_birds_eye_view: view.locked_to_birds_eye_view(),
                 });
             }
         }
@@ -192,28 +189,17 @@ impl ViewerBase {
 
                     let scene_from_camera_orientation = view_info.scene_from_camera.rotation();
                     let scene_from_camera_quaternion = scene_from_camera_orientation.params();
-                    let angle_time_axis = scene_from_camera_orientation.log();
-                    let angle_rad = angle_time_axis.norm();
-                    let mut axis = VecF64::zeros();
-                    if angle_rad >= EPS_F64 {
-                        axis = angle_time_axis.scaled(1.0 / angle_rad);
-                    }
 
                     ui.label(format!(
-                    "CAMERA pos: ({:0.3}, {:0.3}, {:0.3}), orient: {:0.1} deg x ({:0.2}, {:0.2}, \
-                     {:0.2}) [q: {:0.4}, ({:0.4}, {:0.4}, {:0.4})], xy-locked: {}",
+                    "CAMERA position: ({:0.3}, {:0.3}, {:0.3}), quaternion: {:0.4}, ({:0.4}, {:0.4}, {:0.4}), bird's eye view: {}",
                     view_info.scene_from_camera.translation()[0],
                     view_info.scene_from_camera.translation()[1],
                     view_info.scene_from_camera.translation()[2],
-                    angle_rad.to_degrees(),
-                    axis[0],
-                    axis[1],
-                    axis[2],
                     scene_from_camera_quaternion[0],
                     scene_from_camera_quaternion[1],
                     scene_from_camera_quaternion[2],
                     scene_from_camera_quaternion[3],
-                    view_info.xy_plane_locked
+                    view_info.locked_to_birds_eye_view
                 ));
                 });
             }
@@ -249,7 +235,7 @@ impl ViewerBase {
                     let adjusted_size =
                         get_adjusted_view_size(view_aspect_ratio, max_width, max_height);
                     match view {
-                        View::View3d(view) => {
+                        View::SceneView(view) => {
                             let render_result = view
                                 .renderer
                                 .render_params(
@@ -297,7 +283,7 @@ impl ViewerBase {
                                 },
                             );
                         }
-                        View::View2d(view) => {
+                        View::ImageView(view) => {
                             let render_result = view
                                 .renderer
                                 .render_params(
@@ -352,8 +338,12 @@ impl ViewerBase {
             let stream = maybe_stream.unwrap();
             for packet in stream.packets {
                 match packet {
-                    Packet::View3d(packet) => View3d::update(&mut self.views, packet, &self.state),
-                    Packet::View2d(packet) => View2d::update(&mut self.views, packet, &self.state),
+                    Packet::Scene(packet) => {
+                        SceneView::update(&mut self.views, packet, &self.state)
+                    }
+                    Packet::Image(packet) => {
+                        ImageView::update(&mut self.views, packet, &self.state)
+                    }
                 }
             }
         }

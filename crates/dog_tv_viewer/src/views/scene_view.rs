@@ -4,27 +4,27 @@ use crate::views::View;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
 use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
-use dog_tv_renderer::renderables::renderable3d::View3dPacket;
+use dog_tv_renderer::renderables::SceneViewPacket;
 use dog_tv_renderer::RenderContext;
 use linked_hash_map::LinkedHashMap;
 
-pub(crate) struct View3d {
+pub(crate) struct SceneView {
     pub(crate) renderer: OffscreenRenderer,
     pub(crate) interaction: InteractionEnum,
     pub(crate) enabled: bool,
     pub(crate) lock_xy_plane: bool,
 }
 
-impl View3d {
+impl SceneView {
     fn create_if_new(
         views: &mut LinkedHashMap<String, View>,
-        packet: &View3dPacket,
+        packet: &SceneViewPacket,
         state: &RenderContext,
     ) {
         if !views.contains_key(&packet.view_label) {
             views.insert(
                 packet.view_label.clone(),
-                View::View3d(View3d {
+                View::SceneView(SceneView {
                     renderer: OffscreenRenderer::new(state, &packet.initial_camera.properties),
                     interaction: InteractionEnum::Orbital(OrbitalInteraction::new(
                         &packet.view_label,
@@ -40,14 +40,14 @@ impl View3d {
 
     pub fn update(
         views: &mut LinkedHashMap<String, View>,
-        packet: View3dPacket,
+        packet: SceneViewPacket,
         state: &RenderContext,
     ) {
         Self::create_if_new(views, &packet, state);
 
         let view = views.get_mut(&packet.view_label).unwrap();
         let view = match view {
-            View::View3d(view) => view,
+            View::SceneView(view) => view,
             _ => panic!("View type mismatch"),
         };
 
@@ -59,7 +59,7 @@ impl View3d {
     }
 }
 
-impl HasAspectRatio for View3d {
+impl HasAspectRatio for SceneView {
     fn aspect_ratio(&self) -> f32 {
         self.renderer.aspect_ratio()
     }
