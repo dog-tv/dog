@@ -12,7 +12,7 @@ pub(crate) struct SceneView {
     pub(crate) renderer: OffscreenRenderer,
     pub(crate) interaction: InteractionEnum,
     pub(crate) enabled: bool,
-    pub(crate) lock_xy_plane: bool,
+    pub(crate) locked_to_birds_eye_orientation: bool,
 }
 
 impl SceneView {
@@ -24,7 +24,7 @@ impl SceneView {
         if !views.contains_key(&packet.view_label) {
             views.insert(
                 packet.view_label.clone(),
-                View::SceneView(SceneView {
+                View::Scene(SceneView {
                     renderer: OffscreenRenderer::new(state, &packet.initial_camera.properties),
                     interaction: InteractionEnum::Orbital(OrbitalInteraction::new(
                         &packet.view_label,
@@ -32,7 +32,7 @@ impl SceneView {
                         packet.initial_camera.properties.clipping_planes,
                     )),
                     enabled: true,
-                    lock_xy_plane: packet.lock_xy_plane,
+                    locked_to_birds_eye_orientation: packet.locked_to_birds_eye_orientation,
                 }),
             );
         }
@@ -47,7 +47,7 @@ impl SceneView {
 
         let view = views.get_mut(&packet.view_label).unwrap();
         let view = match view {
-            View::SceneView(view) => view,
+            View::Scene(view) => view,
             _ => panic!("View type mismatch"),
         };
 

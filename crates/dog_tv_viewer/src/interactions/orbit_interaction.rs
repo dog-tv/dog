@@ -50,7 +50,7 @@ impl OrbitalInteraction {
 }
 
 impl OrbitalInteraction {
-    fn median_scene_depth(&self, z_buffer: &ArcImageF32) -> f64 {
+    fn median_scene_ndc_z(&self, z_buffer: &ArcImageF32) -> f64 {
         // to median ndc z
         let scalar_view = z_buffer.tensor.scalar_view();
         let mut valid_z_values = scalar_view
@@ -61,14 +61,12 @@ impl OrbitalInteraction {
             .collect::<Vec<_>>();
         valid_z_values.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
-        let ndc_z = if !valid_z_values.is_empty() {
+        if !valid_z_values.is_empty() {
             let idx = (valid_z_values.len() as f64 * 0.5) as usize;
             *valid_z_values[idx] as f64
         } else {
             0.5
-        };
-
-        self.clipping_planes.metric_z_from_ndc_z(ndc_z)
+        }
     }
 
     /// Process "scroll" events
@@ -152,7 +150,7 @@ impl OrbitalInteraction {
             let z_in_camera = focus_point_in_camera[2];
             let ndc_z = self.clipping_planes.ndc_z_from_metric_z(z_in_camera);
 
-            if ndc_z > 0.03 && ndc_z < 0.97 {
+            if ndc_z > 0.03 && ndc_z < 0.9999 {
                 self.scene_from_camera = new_scene_from_camera;
 
                 self.maybe_scene_focus = Some(SceneFocus {
@@ -180,7 +178,7 @@ impl OrbitalInteraction {
         if ndc_z > 0.99 {
             match self.maybe_scene_focus {
                 Some(scene_focus) => scene_focus.ndc_z as f64,
-                None => self.median_scene_depth(z_buffer),
+                None => self.median_scene_ndc_z(z_buffer),
             }
         } else {
             ndc_z.clamp(0.01, 0.99)
@@ -189,14 +187,15 @@ impl OrbitalInteraction {
 
     /// Process pointer events
     ///
-    /// primary button: rotate about scene focus
+    /// primary button: in-plane translate
     ///
-    /// secondary button: in-plane translate
+    /// secondary button: rotate about scene focus
+    ///
     pub fn process_pointer(
         &mut self,
         active_view: &mut String,
         cam: &RenderIntrinsics,
-        lock_xy_plane: bool,
+        locked_to_birds_eye_orientation: bool,
         response: &egui::Response,
         scales: &ViewportScale,
         z_buffer: &ArcImageF32,
@@ -232,10 +231,25 @@ impl OrbitalInteraction {
             self.maybe_pointer_state = None;
         };
 
-        if response.dragged_by(egui::PointerButton::Secondary)
-            || (response.dragged_by(egui::PointerButton::Primary)
-                && response.ctx.input(|i| i.modifiers.shift))
+        if !locked_to_birds_eye_orientation
+            && (response.dragged_by(egui::PointerButton::Secondary)
+                || (response.dragged_by(egui::PointerButton::Primary)
+                    && response.ctx.input(|i| i.modifiers.shift)))
         {
+            // rotate about scene focus
+            let scene_focus = self.maybe_scene_focus.unwrap();
+            let pixel = scene_focus.uv_in_virtual_camera;
+            let depth = scene_focus.metric_depth(&self.clipping_planes);
+            let delta =
+                0.01 * VecF64::<6>::new(0.0, 0.0, 0.0, -delta_y as f64, delta_x as f64, 0.0);
+            let camera_from_scene_point =
+                Isometry3::from_translation(&cam.cam_unproj_with_z(&pixel, depth));
+            self.scene_from_camera =
+                self.scene_from_camera
+                    .group_mul(&camera_from_scene_point.group_mul(
+                        &Isometry3::exp(&delta).group_mul(&camera_from_scene_point.inverse()),
+                    ));
+        } else if response.dragged_by(egui::PointerButton::Primary) {
             // translate scene
 
             let uv_viewport = response.interact_pointer_pos().unwrap() - response.rect.min;
@@ -262,21 +276,6 @@ impl OrbitalInteraction {
                 focus.uv_in_virtual_camera =
                     VecF64::<2>::new(current_pixel.x as f64, current_pixel.y as f64);
             }
-        } else if !lock_xy_plane && response.dragged_by(egui::PointerButton::Primary) {
-            // rotate around scene focus
-
-            let scene_focus = self.maybe_scene_focus.unwrap();
-            let pixel = scene_focus.uv_in_virtual_camera;
-            let depth = scene_focus.metric_depth(&self.clipping_planes);
-            let delta =
-                0.01 * VecF64::<6>::new(0.0, 0.0, 0.0, -delta_y as f64, delta_x as f64, 0.0);
-            let camera_from_scene_point =
-                Isometry3::from_translation(&cam.cam_unproj_with_z(&pixel, depth));
-            self.scene_from_camera =
-                self.scene_from_camera
-                    .group_mul(&camera_from_scene_point.group_mul(
-                        &Isometry3::exp(&delta).group_mul(&camera_from_scene_point.inverse()),
-                    ));
         }
     }
 
@@ -286,13 +285,20 @@ impl OrbitalInteraction {
         &mut self,
         active_view: &mut String,
         cam: &RenderIntrinsics,
-        lock_xy_plane: bool,
+        locked_to_birds_eye_orientation: bool,
         response: &egui::Response,
         scales: &ViewportScale,
         view_port_size: ImageSize,
         z_buffer: &ArcImageF32,
     ) {
-        self.process_pointer(active_view, cam, lock_xy_plane, response, scales, z_buffer);
+        self.process_pointer(
+            active_view,
+            cam,
+            locked_to_birds_eye_orientation,
+            response,
+            scales,
+            z_buffer,
+        );
         self.process_scrolls(active_view, cam, response, scales, view_port_size, z_buffer);
     }
 

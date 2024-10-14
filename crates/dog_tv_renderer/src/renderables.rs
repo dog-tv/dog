@@ -62,7 +62,7 @@ pub fn make_view3d_packet(
         initial_camera,
         view_label: view_label.to_owned(),
         renderables3d,
-        lock_xy_plane: false,
+        locked_to_birds_eye_orientation: false,
     })
 }
 
@@ -76,7 +76,7 @@ pub fn make_view3d_packet_xy_locked(
         initial_camera,
         view_label: view_label.to_owned(),
         renderables3d,
-        lock_xy_plane: true,
+        locked_to_birds_eye_orientation: true,
     })
 }
 
@@ -109,5 +109,5 @@ pub struct SceneViewPacket {
     /// Initial camera, ignored if not the first packet for this view
     pub initial_camera: RenderCamera,
     /// lock xy plane
-    pub lock_xy_plane: bool,
+    pub locked_to_birds_eye_orientation: bool,
 }

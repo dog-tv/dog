@@ -96,7 +96,7 @@ impl InteractionEnum {
         &mut self,
         active_view: &mut String,
         cam: &RenderIntrinsics,
-        lock_xy_plane: bool,
+        locked_to_birds_eye_orientation: bool,
         response: &egui::Response,
         scales: &ViewportScale,
         view_port_size: ImageSize,
@@ -106,7 +106,7 @@ impl InteractionEnum {
             InteractionEnum::Orbital(orbit) => orbit.process_event(
                 active_view,
                 cam,
-                lock_xy_plane,
+                locked_to_birds_eye_orientation,
                 response,
                 scales,
                 view_port_size,

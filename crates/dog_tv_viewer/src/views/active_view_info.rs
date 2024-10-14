@@ -10,7 +10,7 @@ pub struct ActiveViewInfo {
     /// scene-from-camera pose
     pub scene_from_camera: Isometry3F64,
     /// camere properties
-    pub camera_properties: RenderCameraProperties,
+    pub camera_properties: Option<RenderCameraProperties>,
     /// scene focus
     pub scene_focus: SceneFocusMarker,
     /// type
@@ -18,5 +18,5 @@ pub struct ActiveViewInfo {
     /// view-port size
     pub view_port_size: ImageSize,
     /// xy-locked
-    pub locked_to_birds_eye_view: bool,
+    pub locked_to_birds_eye_orientation: bool,
 }

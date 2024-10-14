@@ -64,12 +64,12 @@ impl ViewerBase {
         for (view_label, view) in self.views.iter_mut() {
             let mut view_port_size = ImageSize::default();
             match view {
-                View::SceneView(view) => {
+                View::Scene(view) => {
                     if let Some(response) = self.responses.get(view_label) {
                         view.interaction.process_event(
                             &mut self.active_view,
                             &view.intrinsics(),
-                            view.lock_xy_plane,
+                            view.locked_to_birds_eye_orientation,
                             &response.ui_response,
                             &response.scales,
                             response.view_port_size,
@@ -78,7 +78,7 @@ impl ViewerBase {
                         view_port_size = response.view_port_size
                     }
                 }
-                View::ImageView(view) => {
+                View::Image(view) => {
                     if let Some(response) = self.responses.get(view_label) {
                         view.interaction.process_event(
                             &mut self.active_view,
@@ -98,12 +98,12 @@ impl ViewerBase {
                 self.active_view_info = Some(ActiveViewInfo {
                     active_view: view_label.clone(),
                     scene_from_camera: view.interaction().scene_from_camera(),
-                    camera_properties: view.camera_propterties(),
+                    camera_properties: Some(view.camera_propterties()),
                     // is_active, so marker is guaranteed to be Some
                     scene_focus: view.interaction().marker().unwrap(),
                     view_type: view.view_type(),
                     view_port_size,
-                    locked_to_birds_eye_view: view.locked_to_birds_eye_view(),
+                    locked_to_birds_eye_orientation: view.locked_to_birds_eye_orientation(),
                 });
             }
         }
@@ -136,12 +136,12 @@ impl ViewerBase {
                 close_on_click_outside,
                 |ui| {
                     ui.set_width(250.0);
-                    ui.label("ROTATE UP/DOWN + LEFT/RIGHT");
-                    ui.label("mouse: left-click drag");
-                    ui.label("touchpad: drag");
-                    ui.label("");
                     ui.label("PAN UP/DOWN + LEFT/RIGHT");
-                    ui.label("mouse: right-click drag");
+                    ui.label("mouse: left-button drag");
+                    ui.label("touchpad: one finger drag");
+                    ui.label("");
+                    ui.label("ROTATE UP/DOWN + LEFT/RIGHT*");
+                    ui.label("mouse: right-button drag");
                     ui.label("touchpad: two finger drag** / shift + drag");
                     ui.label("");
                     ui.label("ZOOM");
@@ -152,6 +152,7 @@ impl ViewerBase {
                     ui.label("mouse: shift + scroll-wheel");
                     ui.label("touchpad: two finger horizontal scroll");
                     ui.label("");
+                    ui.label("* Disabled if locked to birds-eye orientation.");
                     ui.label("** Does not work on all touchpads.");
                 },
             );
@@ -170,38 +171,52 @@ impl ViewerBase {
     pub fn update_bottom_status_bar(&mut self, ui: &mut egui::Ui, _ctx: &egui::Context) {
         match self.active_view_info.as_ref() {
             Some(view_info) => {
-                ui.horizontal_wrapped(|ui| {
+                if let Some(camera_properties) = view_info.camera_properties.as_ref() {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(format!(
+                            "{}: {}, view-port: {} x {}, image: {} x {}, clip: [{}, {}], \
+                            focus uv: {:0.1} {:0.1}, ndc-z: {:0.3}, metric-z: {:0.3}",
+                            view_info.view_type,
+                            view_info.active_view,
+                            view_info.view_port_size.width,
+                            view_info.view_port_size.height,
+                            camera_properties.intrinsics.image_size().width,
+                            camera_properties.intrinsics.image_size().height,
+                            camera_properties.clipping_planes.near,
+                            camera_properties.clipping_planes.far,
+                            view_info.scene_focus.u,
+                            view_info.scene_focus.v,
+                            view_info.scene_focus.ndc_z,
+                            camera_properties
+                                .clipping_planes
+                                .metric_z_from_ndc_z(view_info.scene_focus.ndc_z as f64),
+                        ));
+
+                        let scene_from_camera_orientation = view_info.scene_from_camera.rotation();
+                        let scene_from_camera_quaternion = scene_from_camera_orientation.params();
+
+                        ui.label(format!(
+                            "CAMERA position: ({:0.3}, {:0.3}, {:0.3}), quaternion: {:0.4}, \
+                            ({:0.4}, {:0.4}, {:0.4}), bird's eye view: {}",
+                            view_info.scene_from_camera.translation()[0],
+                            view_info.scene_from_camera.translation()[1],
+                            view_info.scene_from_camera.translation()[2],
+                            scene_from_camera_quaternion[0],
+                            scene_from_camera_quaternion[1],
+                            scene_from_camera_quaternion[2],
+                            scene_from_camera_quaternion[3],
+                            view_info.locked_to_birds_eye_orientation
+                        ));
+                    });
+                } else {
                     ui.label(format!(
-                        "{}: {}, view-port: {} x {}, image: {} x {}, clip: [{}, {}], \
-                     focus uv: {:0.1} {:0.1}, ndc-z: {:0.3}",
+                        "{}: {}, view-port: {} x {}",
                         view_info.view_type,
                         view_info.active_view,
                         view_info.view_port_size.width,
                         view_info.view_port_size.height,
-                        view_info.camera_properties.intrinsics.image_size().width,
-                        view_info.camera_properties.intrinsics.image_size().height,
-                        view_info.camera_properties.clipping_planes.near,
-                        view_info.camera_properties.clipping_planes.far,
-                        view_info.scene_focus.u,
-                        view_info.scene_focus.v,
-                        view_info.scene_focus.ndc_z,
                     ));
-
-                    let scene_from_camera_orientation = view_info.scene_from_camera.rotation();
-                    let scene_from_camera_quaternion = scene_from_camera_orientation.params();
-
-                    ui.label(format!(
-                    "CAMERA position: ({:0.3}, {:0.3}, {:0.3}), quaternion: {:0.4}, ({:0.4}, {:0.4}, {:0.4}), bird's eye view: {}",
-                    view_info.scene_from_camera.translation()[0],
-                    view_info.scene_from_camera.translation()[1],
-                    view_info.scene_from_camera.translation()[2],
-                    scene_from_camera_quaternion[0],
-                    scene_from_camera_quaternion[1],
-                    scene_from_camera_quaternion[2],
-                    scene_from_camera_quaternion[3],
-                    view_info.locked_to_birds_eye_view
-                ));
-                });
+                }
             }
             None => {
                 ui.label("view: n/a");
@@ -235,7 +250,7 @@ impl ViewerBase {
                     let adjusted_size =
                         get_adjusted_view_size(view_aspect_ratio, max_width, max_height);
                     match view {
-                        View::SceneView(view) => {
+                        View::Scene(view) => {
                             let render_result = view
                                 .renderer
                                 .render_params(
@@ -252,7 +267,6 @@ impl ViewerBase {
                                 render_result.depth_egui_tex_id
                             } else {
                                 render_result.rgba_egui_tex_id
-                                // render_result.rgba_egui_tex_id
                             };
 
                             let ui_response = ui.add(
@@ -283,7 +297,7 @@ impl ViewerBase {
                                 },
                             );
                         }
-                        View::ImageView(view) => {
+                        View::Image(view) => {
                             let render_result = view
                                 .renderer
                                 .render_params(

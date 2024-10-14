@@ -26,7 +26,7 @@ impl ImageView {
         if let Some(frame) = &packet.frame {
             views.insert(
                 packet.view_label.clone(),
-                View::ImageView(ImageView {
+                View::Image(ImageView {
                     renderer: OffscreenRenderer::new(state, frame.camera_properties()),
                     interaction: InteractionEnum::InPlane(InplaneInteraction::new(
                         &packet.view_label,
@@ -49,7 +49,7 @@ impl ImageView {
         let view = views.get_mut(&packet.view_label).unwrap();
 
         let view = match view {
-            View::ImageView(view) => view,
+            View::Image(view) => view,
             _ => panic!("View type mismatch"),
         };
 
@@ -67,7 +67,7 @@ impl ImageView {
 
         let view = views.get_mut(&packet.view_label).unwrap();
         let view = match view {
-            View::ImageView(view) => view,
+            View::Image(view) => view,
             _ => panic!("View type mismatch"),
         };
 
