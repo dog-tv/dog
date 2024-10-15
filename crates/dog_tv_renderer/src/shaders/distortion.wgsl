@@ -17,45 +17,45 @@ var<uniform> pinhole: PinholeModel;
     view_port_size: vec2<u32>,
     background_color: vec4<f32>
 ) {
-        let uv_distorted =  vec2<f32>(view_port_coords_distorted) *  vec2<f32>(image_size) / vec2<f32>(view_port_size);
-        let uv_undistorted = undistort(vec2<f32>(uv_distorted), pinhole, camera);
-        let view_port_coords_undistorted = uv_undistorted * vec2<f32>(view_port_size) / vec2<f32>(image_size);
+    let uv_distorted =  vec2<f32>(view_port_coords_distorted) *  vec2<f32>(image_size) / vec2<f32>(view_port_size);
+    let uv_undistorted = undistort(vec2<f32>(uv_distorted), pinhole, camera);
+    let view_port_coords_undistorted = uv_undistorted * vec2<f32>(view_port_size) / vec2<f32>(image_size);
 
-        // bi-linear interpolation
-        let x0 = floor(view_port_coords_undistorted.x);
-        let x1 = ceil(view_port_coords_undistorted.x);
-        let y0 = floor(view_port_coords_undistorted.y);
-        let y1 = ceil(view_port_coords_undistorted.y);
+    // bi-linear interpolation
+    let x0 = floor(view_port_coords_undistorted.x);
+    let x1 = ceil(view_port_coords_undistorted.x);
+    let y0 = floor(view_port_coords_undistorted.y);
+    let y1 = ceil(view_port_coords_undistorted.y);
 
-        let tx = view_port_coords_undistorted.x - x0;
-        let ty = view_port_coords_undistorted.y - y0;
+    let tx = view_port_coords_undistorted.x - x0;
+    let ty = view_port_coords_undistorted.y - y0;
 
-        let c00 = textureLoad(input_texture, vec2<u32>(u32(x0), u32(y0)), 0);
-        let c10 = textureLoad(input_texture, vec2<u32>(u32(x1), u32(y0)), 0);
-        let c01 = textureLoad(input_texture, vec2<u32>(u32(x0), u32(y1)), 0);
-        let c11 = textureLoad(input_texture, vec2<u32>(u32(x1), u32(y1)), 0);
+    let c00 = textureLoad(input_texture, vec2<u32>(u32(x0), u32(y0)), 0);
+    let c10 = textureLoad(input_texture, vec2<u32>(u32(x1), u32(y0)), 0);
+    let c01 = textureLoad(input_texture, vec2<u32>(u32(x0), u32(y1)), 0);
+    let c11 = textureLoad(input_texture, vec2<u32>(u32(x1), u32(y1)), 0);
 
-        let foreground_color = mix(
-            mix(c00, c10, tx),
-            mix(c01, c11, tx),
-            ty
-        );
+    let foreground_color = mix(
+        mix(c00, c10, tx),
+        mix(c01, c11, tx),
+        ty
+    );
 
-        // depth lookup without interpolation, and also just the first sample
-        // todo: use the correct sample, or min over all samples
-        let ndc_z = textureLoad(depth_texture,  vec2<u32>(view_port_coords_undistorted), 0);
+    // depth lookup without interpolation, and also just the first sample
+    // todo: use the correct sample, or min over all samples
+    let ndc_z = textureLoad(depth_texture,  vec2<u32>(view_port_coords_undistorted), 0);
 
-        // Use the alpha channel of the foreground for blending
-        let alpha = foreground_color.a;
+    // Use the alpha channel of the foreground for blending
+    let alpha = foreground_color.a;
 
-        let mixed = vec4<f32>(
-            mix(background_color.rgb, foreground_color.rgb, alpha),
-            1.0 // Keep the output fully opaque
-        );
+    let mixed = vec4<f32>(
+        mix(background_color.rgb, foreground_color.rgb, alpha),
+        1.0 // Keep the output fully opaque
+    );
 
-        textureStore(distorted_depth_texture, view_port_coords_distorted, ndc_z);
-        textureStore(output_texture, view_port_coords_distorted, mixed);
-    }
+    textureStore(distorted_depth_texture, view_port_coords_distorted, ndc_z);
+    textureStore(output_texture, view_port_coords_distorted, mixed);
+}
 
 @compute @workgroup_size(16, 16)
 fn distort(@builtin(global_invocation_id) global_id : vec3<u32>) {

@@ -132,7 +132,7 @@ impl RgbdTexture {
             .write()
             .register_native_texture(
                 render_state.wgpu_device.as_ref(),
-                &final_texture_view,
+                &resolved_texture_view,
                 wgpu::FilterMode::Linear,
             );
 

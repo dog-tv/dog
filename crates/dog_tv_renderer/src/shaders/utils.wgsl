@@ -139,7 +139,14 @@ fn pixel_and_z_to_clip(uv_z: vec2<f32>, z: f32, camera: CameraProperties, zoom: 
     var u = uv_z.x * zoom.scaling_x + zoom.translation_x;
     var v = uv_z.y * zoom.scaling_y + zoom.translation_y;
 
-    let z_clip = (far * (z - near)) / (z * (far - near));
+    if (z < near) {
+        return vec4<f32>(2.0 * ((u + 0.5) / width - 0.5),
+                         -2.0 * ((v + 0.5) / height - 0.5),
+                         -1.0,
+                         1.0);
+    }
+
+    let z_clip = (far / (far - near)) * (1.0 - (near / z));
 
     return vec4<f32>(2.0 * ((u + 0.5) / width - 0.5),
                     -2.0 * ((v + 0.5) / height - 0.5),
