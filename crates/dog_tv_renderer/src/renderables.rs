@@ -8,6 +8,7 @@ pub mod renderable2d;
 pub mod renderable3d;
 
 use sophus::image::arc_image::ArcImage4U8;
+use sophus::lie::Isometry3F64;
 
 use crate::camera::RenderCamera;
 use crate::renderables::frame::Frame;
@@ -63,6 +64,7 @@ pub fn make_view3d_packet(
         view_label: view_label.to_owned(),
         renderables3d,
         locked_to_birds_eye_orientation: false,
+        world_from_scene_update: None,
     })
 }
 
@@ -77,6 +79,21 @@ pub fn make_view3d_packet_xy_locked(
         view_label: view_label.to_owned(),
         renderables3d,
         locked_to_birds_eye_orientation: true,
+        world_from_scene_update: None,
+    })
+}
+
+/// Create world-from-scene update packet
+pub fn world_from_scene_update_packet(
+    view_label: &str,
+    world_from_scene_update: Isometry3F64,
+) -> Packet {
+    Packet::Scene(SceneViewPacket {
+        initial_camera: RenderCamera::default(),
+        view_label: view_label.to_owned(),
+        renderables3d: vec![],
+        locked_to_birds_eye_orientation: false,
+        world_from_scene_update: Some(world_from_scene_update),
     })
 }
 
@@ -104,6 +121,8 @@ pub struct ImageViewPacket {
 pub struct SceneViewPacket {
     /// List of 3d renderables
     pub renderables3d: Vec<Renderable3d>,
+    /// world-from-scene pose update
+    pub world_from_scene_update: Option<Isometry3F64>,
     /// Name of the view
     pub view_label: String,
     /// Initial camera, ignored if not the first packet for this view

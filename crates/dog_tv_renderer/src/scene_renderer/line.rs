@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 pub(crate) struct Line3dEntity {
     pub(crate) vertex_data: Vec<LineVertex3>,
     pub(crate) vertex_buffer: wgpu::Buffer,
-    pub(crate) scene_from_entity: Isometry3F64,
+    pub(crate) world_from_entity: Isometry3F64,
 }
 
 impl Line3dEntity {
@@ -53,7 +53,7 @@ impl Line3dEntity {
         Self {
             vertex_data,
             vertex_buffer,
-            scene_from_entity: lines.scene_from_entity,
+            world_from_entity: lines.world_from_entity,
         }
     }
 }
@@ -92,6 +92,7 @@ impl SceneLineRenderer {
         &'rp self,
         render_context: &RenderContext,
         scene_from_camera: &Isometry3F64,
+        world_from_scene: &Isometry3F64,
         uniforms: &'rp VertexShaderUniformBuffers,
         render_pass: &mut wgpu::RenderPass<'rp>,
     ) {
@@ -102,8 +103,8 @@ impl SceneLineRenderer {
                 .camera_from_entity_pose_buffer
                 .update_given_camera_and_entity(
                     &render_context.wgpu_queue,
-                    scene_from_camera,
-                    &line.scene_from_entity,
+                    &world_from_scene.group_mul(&scene_from_camera),
+                    &line.world_from_entity,
                 );
             render_pass.set_vertex_buffer(0, line.vertex_buffer.slice(..));
             render_pass.draw(0..line.vertex_data.len() as u32, 0..1);

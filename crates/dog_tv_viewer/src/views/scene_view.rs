@@ -7,6 +7,7 @@ use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
 use dog_tv_renderer::renderables::SceneViewPacket;
 use dog_tv_renderer::RenderContext;
 use linked_hash_map::LinkedHashMap;
+use sophus::lie::Isometry3F64;
 
 pub(crate) struct SceneView {
     pub(crate) renderer: OffscreenRenderer,
@@ -46,12 +47,16 @@ impl SceneView {
         Self::create_if_new(views, &packet, state);
 
         let view = views.get_mut(&packet.view_label).unwrap();
-        let view = match view {
+        let scene_view = match view {
             View::Scene(view) => view,
             _ => panic!("View type mismatch"),
         };
-
-        view.renderer.update_3d_renderables(packet.renderables3d);
+        if let Some(world_from_scene_update) = packet.world_from_scene_update {
+            scene_view.renderer.scene.world_from_scene = world_from_scene_update;
+        }
+        scene_view
+            .renderer
+            .update_3d_renderables(packet.renderables3d);
     }
 
     pub fn intrinsics(&self) -> RenderIntrinsics {

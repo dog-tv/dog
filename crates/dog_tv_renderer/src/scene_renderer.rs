@@ -33,6 +33,8 @@ pub struct SceneRenderer {
     pub point_renderer: ScenePointRenderer,
     /// Line renderer
     pub line_renderer: line::SceneLineRenderer,
+    /// World from scene
+    pub world_from_scene: Isometry3F64,
 }
 
 impl SceneRenderer {
@@ -60,6 +62,7 @@ impl SceneRenderer {
             //     render_context,
             //     &scene_pipeline_builder,
             // ),
+            world_from_scene: Isometry3F64::identity(),
         }
     }
 
@@ -103,14 +106,25 @@ impl SceneRenderer {
         self.mesh_renderer.paint(
             state,
             scene_from_camera,
+            &self.world_from_scene,
             &self.uniforms,
             &mut render_pass,
             backface_culling,
         );
-        self.point_renderer
-            .paint(state, scene_from_camera, &self.uniforms, &mut render_pass);
-        self.line_renderer
-            .paint(state, scene_from_camera, &self.uniforms, &mut render_pass);
+        self.point_renderer.paint(
+            state,
+            scene_from_camera,
+            &self.world_from_scene,
+            &self.uniforms,
+            &mut render_pass,
+        );
+        self.line_renderer.paint(
+            state,
+            scene_from_camera,
+            &self.world_from_scene,
+            &self.uniforms,
+            &mut render_pass,
+        );
         // self.textured_mesh_renderer.paint(
         //     state,
         //     scene_from_camera,

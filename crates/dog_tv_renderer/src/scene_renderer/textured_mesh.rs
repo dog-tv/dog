@@ -145,7 +145,7 @@ impl TexturedMeshEntity {
             _vertex_buffer: vertex_buffer,
             _texture: texture,
             _texture_bind_group: texture_bind_group,
-            _scene_from_entity: mesh.scene_from_entity,
+            _scene_from_entity: mesh.world_from_entity,
         }
     }
 }
@@ -190,6 +190,7 @@ impl TexturedMeshRenderer {
         &'rp self,
         render_context: &RenderContext,
         scene_from_camera: &Isometry3F64,
+        world_from_scene: &Isometry3F64,
         uniforms: &'rp VertexShaderUniformBuffers,
         render_pass: &mut wgpu::RenderPass<'rp>,
     ) {
@@ -200,7 +201,7 @@ impl TexturedMeshRenderer {
                 .camera_from_entity_pose_buffer
                 .update_given_camera_and_entity(
                     &render_context.wgpu_queue,
-                    scene_from_camera,
+                    &world_from_scene.group_mul(&scene_from_camera),
                     &mesh._scene_from_entity,
                 );
             render_pass.set_bind_group(1, &mesh._texture_bind_group, &[]);

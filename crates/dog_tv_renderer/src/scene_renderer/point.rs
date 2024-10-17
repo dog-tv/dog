@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 pub(crate) struct Point3dEntity {
     pub(crate) vertex_data: Vec<PointVertex3>,
     pub(crate) vertex_buffer: wgpu::Buffer,
-    pub(crate) scene_from_entity: Isometry3F64,
+    pub(crate) world_from_entity: Isometry3F64,
 }
 
 impl Point3dEntity {
@@ -40,7 +40,7 @@ impl Point3dEntity {
         Self {
             vertex_data,
             vertex_buffer,
-            scene_from_entity: points.scene_from_entity,
+            world_from_entity: points.world_from_entity,
         }
     }
 }
@@ -78,6 +78,7 @@ impl ScenePointRenderer {
         &'rp self,
         render_context: &RenderContext,
         scene_from_camera: &Isometry3F64,
+        world_from_scene: &Isometry3F64,
         buffers: &'rp VertexShaderUniformBuffers,
         render_pass: &mut wgpu::RenderPass<'rp>,
     ) {
@@ -89,8 +90,8 @@ impl ScenePointRenderer {
                 .camera_from_entity_pose_buffer
                 .update_given_camera_and_entity(
                     &render_context.wgpu_queue,
-                    scene_from_camera,
-                    &point.scene_from_entity,
+                    &world_from_scene.group_mul(&scene_from_camera),
+                    &point.world_from_entity,
                 );
             render_pass.set_vertex_buffer(0, point.vertex_buffer.slice(..));
             render_pass.draw(0..point.vertex_data.len() as u32, 0..1);

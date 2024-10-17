@@ -115,6 +115,7 @@ fn create_scene_packet(pinhole: bool) -> Packet {
         renderables3d: vec![],
         initial_camera: initial_camera.clone(),
         locked_to_birds_eye_orientation: pinhole,
+        world_from_scene_update: None,
     };
 
     let trig_points = [[0.0, 0.0, -0.1], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]];

@@ -23,7 +23,7 @@ pub struct RgbdTexture {
     pub resolved_texture_view: wgpu::TextureView,
     /// rgba texture
     pub final_texture: wgpu::Texture,
-    /// rgba texture view distorted
+    /// rgba texture view distortedProcess
     pub final_texture_view: wgpu::TextureView,
     pub(crate) egui_tex_id: egui::TextureId,
 }
@@ -51,7 +51,7 @@ impl RgbdTexture {
             // already aligned
             unaligned_bytes_per_row
         } else {
-            // align to the next multiple of `align`
+            // align to the next multiple of `align`Process
             (unaligned_bytes_per_row / align + 1) * align
         }
     }

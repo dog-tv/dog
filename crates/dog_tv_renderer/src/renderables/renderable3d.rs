@@ -18,11 +18,11 @@ pub enum Renderable3d {
 
 impl Renderable3d {
     /// Get scene from entity
-    pub fn scene_from_entity(&self) -> Isometry3F64 {
+    pub fn world_from_entity(&self) -> Isometry3F64 {
         match self {
-            Renderable3d::Line(lines) => lines.scene_from_entity,
-            Renderable3d::Point(points) => points.scene_from_entity,
-            Renderable3d::Mesh3(mesh) => mesh.scene_from_entity,
+            Renderable3d::Line(lines) => lines.world_from_entity,
+            Renderable3d::Point(points) => points.world_from_entity,
+            Renderable3d::Mesh3(mesh) => mesh.world_from_entity,
         }
     }
 }
@@ -31,12 +31,12 @@ impl Renderable3d {
 pub fn named_line3_at(
     name: impl ToString,
     line_segments: Vec<LineSegment3>,
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> Renderable3d {
     let lines = LineSegments3 {
         name: name.to_string(),
         segments: line_segments,
-        scene_from_entity,
+        world_from_entity,
     };
 
     Renderable3d::Line(lines)
@@ -51,12 +51,12 @@ pub fn named_line3(name: impl ToString, line_segments: Vec<LineSegment3>) -> Ren
 pub fn named_point3_at(
     name: impl ToString,
     points: Vec<Point3>,
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> Renderable3d {
     let points = PointCloud3 {
         name: name.to_string(),
         points,
-        scene_from_entity,
+        world_from_entity,
     };
 
     Renderable3d::Point(points)
@@ -71,12 +71,12 @@ pub fn named_point3(name: impl ToString, points: Vec<Point3>) -> Renderable3d {
 pub fn named_mesh3_at(
     name: impl ToString,
     mesh: TriangleMesh3,
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> Renderable3d {
     let mesh = TriangleMesh3 {
         name: name.to_string(),
         triangles: mesh.triangles,
-        scene_from_entity,
+        world_from_entity,
     };
 
     Renderable3d::Mesh3(mesh)
@@ -93,12 +93,12 @@ pub fn make_point3_at(
     arr: &[impl HasToVec3F32],
     color: &Color,
     point_size: f32,
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> Renderable3d {
     let mut points = PointCloud3 {
         name: name.to_string(),
         points: vec![],
-        scene_from_entity,
+        world_from_entity,
     };
 
     for p in arr {
@@ -127,12 +127,12 @@ pub fn make_line3_at(
     arr: &[[impl HasToVec3F32; 2]],
     color: &Color,
     line_width: f32,
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> Renderable3d {
     let mut lines = LineSegments3 {
         name: name.to_string(),
         segments: vec![],
-        scene_from_entity,
+        world_from_entity,
     };
 
     for tuple in arr {
@@ -161,12 +161,12 @@ pub fn make_line3(
 pub fn make_mesh3_at(
     name: impl ToString,
     arr: &[([impl HasToVec3F32; 3], Color)],
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> Renderable3d {
     let mut mesh = TriangleMesh3 {
         name: name.to_string(),
         triangles: vec![],
-        scene_from_entity,
+        world_from_entity,
     };
 
     for (trig, color) in arr {
@@ -192,12 +192,12 @@ pub fn make_mesh3(name: impl ToString, arr: &[([impl HasToVec3F32; 3], Color)]) 
 pub fn make_textured_mesh3_at(
     name: impl ToString,
     arr: &[[(impl HasToVec3F32, impl HasToVec2F32); 3]],
-    scene_from_entity: Isometry3F64,
+    world_from_entity: Isometry3F64,
 ) -> TexturedTriangleMesh3 {
     let mut mesh = TexturedTriangleMesh3 {
         name: name.to_string(),
         triangles: vec![],
-        scene_from_entity,
+        world_from_entity,
     };
 
     for trig in arr {
@@ -325,8 +325,8 @@ pub struct PointCloud3 {
     pub name: String,
     /// List of points
     pub points: Vec<Point3>,
-    /// scene-anchored pose of the entity
-    pub scene_from_entity: Isometry3F64,
+    /// world-anchored pose of the entity
+    pub world_from_entity: Isometry3F64,
 }
 
 /// 3D lines
@@ -336,8 +336,8 @@ pub struct LineSegments3 {
     pub name: String,
     /// List of segments
     pub segments: Vec<LineSegment3>,
-    /// scene-anchored pose of the entity
-    pub scene_from_entity: Isometry3F64,
+    /// world-anchored pose of the entity
+    pub world_from_entity: Isometry3F64,
 }
 
 /// 3D mesh
@@ -347,8 +347,8 @@ pub struct TriangleMesh3 {
     pub name: String,
     /// List of triangles
     pub triangles: Vec<Triangle3>,
-    /// scene-anchored pose of the entity
-    pub scene_from_entity: Isometry3F64,
+    /// world-anchored pose of the entity
+    pub world_from_entity: Isometry3F64,
 }
 
 /// 3D textured mesh
@@ -358,8 +358,8 @@ pub struct TexturedTriangleMesh3 {
     pub name: String,
     /// List of textured triangles
     pub triangles: Vec<TexturedTriangle3>,
-    /// scene-anchored pose of the entity
-    pub scene_from_entity: Isometry3F64,
+    /// world-anchored pose of the entity
+    pub world_from_entity: Isometry3F64,
 }
 
 /// Make axis

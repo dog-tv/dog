@@ -27,7 +27,8 @@ use std::sync::Arc;
 pub struct OffscreenRenderer {
     pub(crate) camera_properties: RenderCameraProperties,
     render_context: RenderContext,
-    scene: SceneRenderer,
+    /// Scene renderer
+    pub scene: SceneRenderer,
     distortion: DistortionRenderer,
     pixel: PixelRenderer,
     textures: Textures,
