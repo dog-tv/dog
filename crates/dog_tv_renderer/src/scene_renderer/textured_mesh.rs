@@ -1,6 +1,6 @@
 use crate::pipeline_builder::PipelineBuilder;
 use crate::pipeline_builder::TexturedMeshVertex3;
-use crate::renderables::renderable3d::TexturedTriangleMesh3;
+use crate::renderables::scene_renderable::TexturedTriangleMesh3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
 use eframe::egui_wgpu::wgpu::util::DeviceExt;

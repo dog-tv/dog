@@ -1,6 +1,6 @@
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
-use dog_tv_renderer::renderables::renderable3d::Renderable3d;
+use dog_tv_renderer::renderables::scene_renderable::SceneRenderable;
 use dog_tv_renderer::textures::depth_image::DepthImage;
 use dog_tv_renderer::RenderContext;
 use sophus::image::arc_image::ArcImage4U8;
@@ -28,8 +28,8 @@ impl CameraSimulator {
     }
 
     /// update scene renderables
-    pub fn update_3d_renderables(&mut self, renderables: Vec<Renderable3d>) {
-        self.renderer.update_3d_renderables(renderables);
+    pub fn update_3d_renderables(&mut self, renderables: Vec<SceneRenderable>) {
+        self.renderer.update_scene(renderables);
     }
 
     /// render

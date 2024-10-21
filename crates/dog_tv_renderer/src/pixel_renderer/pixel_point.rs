@@ -1,6 +1,6 @@
 use crate::pipeline_builder::PipelineBuilder;
 use crate::pipeline_builder::PointVertex2;
-use crate::renderables::renderable2d::PointCloud2;
+use crate::renderables::pixel_renderable::PointCloud2;
 use crate::RenderContext;
 use eframe::egui_wgpu::wgpu::util::DeviceExt;
 use std::collections::BTreeMap;

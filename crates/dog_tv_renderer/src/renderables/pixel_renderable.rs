@@ -2,9 +2,9 @@ use sophus::core::linalg::SVec;
 
 use crate::renderables::color::Color;
 
-/// View3d renderable
+/// Pixel renderable
 #[derive(Clone, Debug)]
-pub enum Renderable2d {
+pub enum PixelRenderable {
     /// 2D line segments
     Line(LineSegments2),
     /// 2D point cloud
@@ -12,16 +12,16 @@ pub enum Renderable2d {
 }
 
 /// named line segments
-pub fn named_line2(name: impl ToString, segments: Vec<LineSegment2>) -> Renderable2d {
-    Renderable2d::Line(LineSegments2 {
+pub fn named_line2(name: impl ToString, segments: Vec<LineSegment2>) -> PixelRenderable {
+    PixelRenderable::Line(LineSegments2 {
         name: name.to_string(),
         segments,
     })
 }
 
 /// named point cloud
-pub fn named_point2(name: impl ToString, points: Vec<Point2>) -> Renderable2d {
-    Renderable2d::Point(PointCloud2 {
+pub fn named_point2(name: impl ToString, points: Vec<Point2>) -> PixelRenderable {
+    PixelRenderable::Point(PointCloud2 {
         name: name.to_string(),
         points,
     })
@@ -33,7 +33,7 @@ pub fn make_line2(
     arr: &[[impl HasToVec2F32; 2]],
     color: &Color,
     line_width: f32,
-) -> Renderable2d {
+) -> PixelRenderable {
     let mut line_segments = LineSegments2 {
         name: name.to_string(),
         segments: vec![],
@@ -48,7 +48,7 @@ pub fn make_line2(
         });
     }
 
-    Renderable2d::Line(line_segments)
+    PixelRenderable::Line(line_segments)
 }
 
 /// make 2d point cloud
@@ -57,7 +57,7 @@ pub fn make_point2(
     arr: &[impl HasToVec2F32],
     color: &Color,
     point_size: f32,
-) -> Renderable2d {
+) -> PixelRenderable {
     let mut cloud = PointCloud2 {
         name: name.to_string(),
         points: vec![],
@@ -70,7 +70,7 @@ pub fn make_point2(
             point_size,
         });
     }
-    Renderable2d::Point(cloud)
+    PixelRenderable::Point(cloud)
 }
 
 /// Can be converted to Vec2F32

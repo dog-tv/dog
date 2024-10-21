@@ -71,8 +71,8 @@ impl ImageView {
             _ => panic!("View type mismatch"),
         };
 
-        view.renderer.update_2d_renderables(packet.renderables2d);
-        view.renderer.update_3d_renderables(packet.renderables3d);
+        view.renderer.update_pixels(packet.pixel_renderables);
+        view.renderer.update_scene(packet.scene_renderables);
     }
 
     pub fn intrinsics(&self) -> RenderIntrinsics {

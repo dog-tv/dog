@@ -1,13 +1,15 @@
 use crate::renderables::color::Color;
-use crate::renderables::renderable2d::HasToVec2F32;
+use crate::renderables::pixel_renderable::HasToVec2F32;
 use sophus::core::linalg::SVec;
-use sophus::core::linalg::VecF64;
 use sophus::lie::Isometry3;
 use sophus::lie::Isometry3F64;
 
-/// View3d renderable
+/// axes
+pub mod axes;
+
+/// scene renderable
 #[derive(Clone, Debug)]
-pub enum Renderable3d {
+pub enum SceneRenderable {
     /// 3D line segments
     Line(LineSegments3),
     /// 3D points
@@ -16,13 +18,13 @@ pub enum Renderable3d {
     Mesh3(TriangleMesh3),
 }
 
-impl Renderable3d {
+impl SceneRenderable {
     /// Get scene from entity
     pub fn world_from_entity(&self) -> Isometry3F64 {
         match self {
-            Renderable3d::Line(lines) => lines.world_from_entity,
-            Renderable3d::Point(points) => points.world_from_entity,
-            Renderable3d::Mesh3(mesh) => mesh.world_from_entity,
+            SceneRenderable::Line(lines) => lines.world_from_entity,
+            SceneRenderable::Point(points) => points.world_from_entity,
+            SceneRenderable::Mesh3(mesh) => mesh.world_from_entity,
         }
     }
 }
@@ -32,18 +34,18 @@ pub fn named_line3_at(
     name: impl ToString,
     line_segments: Vec<LineSegment3>,
     world_from_entity: Isometry3F64,
-) -> Renderable3d {
+) -> SceneRenderable {
     let lines = LineSegments3 {
         name: name.to_string(),
         segments: line_segments,
         world_from_entity,
     };
 
-    Renderable3d::Line(lines)
+    SceneRenderable::Line(lines)
 }
 
 /// creates a named line segment
-pub fn named_line3(name: impl ToString, line_segments: Vec<LineSegment3>) -> Renderable3d {
+pub fn named_line3(name: impl ToString, line_segments: Vec<LineSegment3>) -> SceneRenderable {
     named_line3_at(name, line_segments, Isometry3::identity())
 }
 
@@ -52,18 +54,18 @@ pub fn named_point3_at(
     name: impl ToString,
     points: Vec<Point3>,
     world_from_entity: Isometry3F64,
-) -> Renderable3d {
+) -> SceneRenderable {
     let points = PointCloud3 {
         name: name.to_string(),
         points,
         world_from_entity,
     };
 
-    Renderable3d::Point(points)
+    SceneRenderable::Point(points)
 }
 
 /// creates a named point cloud
-pub fn named_point3(name: impl ToString, points: Vec<Point3>) -> Renderable3d {
+pub fn named_point3(name: impl ToString, points: Vec<Point3>) -> SceneRenderable {
     named_point3_at(name, points, Isometry3::identity())
 }
 
@@ -72,18 +74,18 @@ pub fn named_mesh3_at(
     name: impl ToString,
     mesh: TriangleMesh3,
     world_from_entity: Isometry3F64,
-) -> Renderable3d {
+) -> SceneRenderable {
     let mesh = TriangleMesh3 {
         name: name.to_string(),
         triangles: mesh.triangles,
         world_from_entity,
     };
 
-    Renderable3d::Mesh3(mesh)
+    SceneRenderable::Mesh3(mesh)
 }
 
 /// creates a named mesh
-pub fn named_mesh3(name: impl ToString, mesh: TriangleMesh3) -> Renderable3d {
+pub fn named_mesh3(name: impl ToString, mesh: TriangleMesh3) -> SceneRenderable {
     named_mesh3_at(name, mesh, Isometry3::identity())
 }
 
@@ -94,7 +96,7 @@ pub fn make_point3_at(
     color: &Color,
     point_size: f32,
     world_from_entity: Isometry3F64,
-) -> Renderable3d {
+) -> SceneRenderable {
     let mut points = PointCloud3 {
         name: name.to_string(),
         points: vec![],
@@ -108,7 +110,7 @@ pub fn make_point3_at(
             point_size,
         });
     }
-    Renderable3d::Point(points)
+    SceneRenderable::Point(points)
 }
 
 /// make 3d points at a given pose
@@ -117,7 +119,7 @@ pub fn make_point3(
     arr: &[impl HasToVec3F32],
     color: &Color,
     point_size: f32,
-) -> Renderable3d {
+) -> SceneRenderable {
     make_point3_at(name, arr, color, point_size, Isometry3::identity())
 }
 
@@ -128,7 +130,7 @@ pub fn make_line3_at(
     color: &Color,
     line_width: f32,
     world_from_entity: Isometry3F64,
-) -> Renderable3d {
+) -> SceneRenderable {
     let mut lines = LineSegments3 {
         name: name.to_string(),
         segments: vec![],
@@ -144,7 +146,7 @@ pub fn make_line3_at(
         });
     }
 
-    Renderable3d::Line(lines)
+    SceneRenderable::Line(lines)
 }
 
 /// makes 3d line segments
@@ -153,7 +155,7 @@ pub fn make_line3(
     arr: &[[impl HasToVec3F32; 2]],
     color: &Color,
     line_width: f32,
-) -> Renderable3d {
+) -> SceneRenderable {
     make_line3_at(name, arr, color, line_width, Isometry3::identity())
 }
 
@@ -162,7 +164,7 @@ pub fn make_mesh3_at(
     name: impl ToString,
     arr: &[([impl HasToVec3F32; 3], Color)],
     world_from_entity: Isometry3F64,
-) -> Renderable3d {
+) -> SceneRenderable {
     let mut mesh = TriangleMesh3 {
         name: name.to_string(),
         triangles: vec![],
@@ -180,11 +182,11 @@ pub fn make_mesh3_at(
         });
     }
 
-    Renderable3d::Mesh3(mesh)
+    SceneRenderable::Mesh3(mesh)
 }
 
 /// make mesh
-pub fn make_mesh3(name: impl ToString, arr: &[([impl HasToVec3F32; 3], Color)]) -> Renderable3d {
+pub fn make_mesh3(name: impl ToString, arr: &[([impl HasToVec3F32; 3], Color)]) -> SceneRenderable {
     make_mesh3_at(name, arr, Isometry3::identity())
 }
 
@@ -360,55 +362,4 @@ pub struct TexturedTriangleMesh3 {
     pub triangles: Vec<TexturedTriangle3>,
     /// world-anchored pose of the entity
     pub world_from_entity: Isometry3F64,
-}
-
-/// Make axis
-pub fn make_axis(world_from_local: Isometry3F64, scale: f64) -> Vec<LineSegment3> {
-    let zero_in_local = VecF64::<3>::zeros();
-    let x_axis_local = VecF64::<3>::new(scale, 0.0, 0.0);
-    let y_axis_local = VecF64::<3>::new(0.0, scale, 0.0);
-    let z_axis_local = VecF64::<3>::new(0.0, 0.0, scale);
-
-    let mut lines = vec![];
-
-    let zero_in_world = world_from_local.transform(&zero_in_local);
-    let axis_x_in_world = world_from_local.transform(&x_axis_local);
-    let axis_y_in_world = world_from_local.transform(&y_axis_local);
-    let axis_z_in_world = world_from_local.transform(&z_axis_local);
-
-    lines.push(LineSegment3 {
-        p0: zero_in_world.cast(),
-        p1: axis_x_in_world.cast(),
-        color: Color {
-            r: 1.0,
-            g: 0.0,
-            b: 0.0,
-            a: 1.0,
-        },
-        line_width: 2.0,
-    });
-    lines.push(LineSegment3 {
-        p0: zero_in_world.cast(),
-        p1: axis_y_in_world.cast(),
-        color: Color {
-            r: 0.0,
-            g: 1.0,
-            b: 0.0,
-            a: 1.0,
-        },
-        line_width: 2.0,
-    });
-    lines.push(LineSegment3 {
-        p0: zero_in_world.cast(),
-        p1: axis_z_in_world.cast(),
-        color: Color {
-            r: 0.0,
-            g: 0.0,
-            b: 1.0,
-            a: 1.0,
-        },
-        line_width: 2.0,
-    });
-
-    lines
 }

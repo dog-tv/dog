@@ -3,8 +3,8 @@ use crate::camera::properties::RenderCameraProperties;
 use crate::pixel_renderer::pixel_line::Line2dEntity;
 use crate::pixel_renderer::pixel_point::Point2dEntity;
 use crate::pixel_renderer::PixelRenderer;
-use crate::renderables::renderable2d::Renderable2d;
-use crate::renderables::renderable3d::Renderable3d;
+use crate::renderables::pixel_renderable::PixelRenderable;
+use crate::renderables::scene_renderable::SceneRenderable;
 use crate::scene_renderer::distortion::DistortionRenderer;
 use crate::scene_renderer::line::Line3dEntity;
 use crate::scene_renderer::mesh::Mesh3dEntity;
@@ -205,16 +205,16 @@ impl OffscreenRenderer {
     }
 
     /// update 2d renderables
-    pub fn update_2d_renderables(&mut self, renderables: Vec<Renderable2d>) {
+    pub fn update_pixels(&mut self, renderables: Vec<PixelRenderable>) {
         for m in renderables {
             match m {
-                Renderable2d::Line(lines) => {
+                PixelRenderable::Line(lines) => {
                     self.pixel.line_renderer.lines_table.insert(
                         lines.name.clone(),
                         Line2dEntity::new(&self.render_context, &lines),
                     );
                 }
-                Renderable2d::Point(points) => {
+                PixelRenderable::Point(points) => {
                     self.pixel.point_renderer.points_table.insert(
                         points.name.clone(),
                         Point2dEntity::new(&self.render_context, &points),
@@ -225,22 +225,22 @@ impl OffscreenRenderer {
     }
 
     /// update 3d renerables
-    pub fn update_3d_renderables(&mut self, renderables: Vec<Renderable3d>) {
+    pub fn update_scene(&mut self, renderables: Vec<SceneRenderable>) {
         for m in renderables {
             match m {
-                Renderable3d::Line(lines3) => {
+                SceneRenderable::Line(lines3) => {
                     self.scene.line_renderer.line_table.insert(
                         lines3.name.clone(),
                         Line3dEntity::new(&self.render_context, &lines3),
                     );
                 }
-                Renderable3d::Point(points3) => {
+                SceneRenderable::Point(points3) => {
                     self.scene.point_renderer.point_table.insert(
                         points3.name.clone(),
                         Point3dEntity::new(&self.render_context, &points3),
                     );
                 }
-                Renderable3d::Mesh3(mesh) => {
+                SceneRenderable::Mesh3(mesh) => {
                     self.scene.mesh_renderer.mesh_table.insert(
                         mesh.name.clone(),
                         Mesh3dEntity::new(&self.render_context, &mesh),

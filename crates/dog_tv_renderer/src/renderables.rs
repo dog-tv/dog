@@ -2,18 +2,18 @@
 pub mod color;
 /// frame
 pub mod frame;
-/// 2d renderable
-pub mod renderable2d;
-/// 3d rendeable
-pub mod renderable3d;
+/// pixel renderable
+pub mod pixel_renderable;
+/// scene rendeable
+pub mod scene_renderable;
 
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::lie::Isometry3F64;
 
 use crate::camera::RenderCamera;
 use crate::renderables::frame::Frame;
-use crate::renderables::renderable2d::Renderable2d;
-use crate::renderables::renderable3d::Renderable3d;
+use crate::renderables::pixel_renderable::PixelRenderable;
+use crate::renderables::scene_renderable::SceneRenderable;
 
 /// Image view renderable
 #[derive(Clone, Debug)]
@@ -38,52 +38,52 @@ pub struct Packets {
     pub packets: Vec<Packet>,
 }
 
-/// Create a view3d packet
-pub fn make_view2d_packet(
+/// Create a image packet
+pub fn make_image_packet(
     view_label: &str,
     frame: Option<Frame>,
-    renderables2d: Vec<Renderable2d>,
-    renderables3d: Vec<Renderable3d>,
+    pixel_renderables: Vec<PixelRenderable>,
+    scene_renderables: Vec<SceneRenderable>,
 ) -> Packet {
     Packet::Image(ImageViewPacket {
         frame,
-        renderables2d,
-        renderables3d,
+        pixel_renderables,
+        scene_renderables,
         view_label: view_label.to_owned(),
     })
 }
 
-/// Create a view3d packet
-pub fn make_view3d_packet(
+/// Create a scene packet
+pub fn make_scene_packet(
     view_label: &str,
     initial_camera: RenderCamera,
-    renderables3d: Vec<Renderable3d>,
+    scene_renderables: Vec<SceneRenderable>,
 ) -> Packet {
     Packet::Scene(SceneViewPacket {
         initial_camera,
         view_label: view_label.to_owned(),
-        renderables3d,
+        scene_renderables,
         locked_to_birds_eye_orientation: false,
         world_from_scene_update: None,
     })
 }
 
-/// Create a view3d packet
-pub fn make_view3d_packet_xy_locked(
+/// Create a scene packet, which is locked to bird's eye view
+pub fn make_birds_eye_scene_packet(
     view_label: &str,
     initial_camera: RenderCamera,
-    renderables3d: Vec<Renderable3d>,
+    scene_renderables: Vec<SceneRenderable>,
 ) -> Packet {
     Packet::Scene(SceneViewPacket {
         initial_camera,
         view_label: view_label.to_owned(),
-        renderables3d,
+        scene_renderables,
         locked_to_birds_eye_orientation: true,
         world_from_scene_update: None,
     })
 }
 
-/// Create world-from-scene update packet
+/// Create world-from-scene update, scene packet
 pub fn world_from_scene_update_packet(
     view_label: &str,
     world_from_scene_update: Isometry3F64,
@@ -91,7 +91,7 @@ pub fn world_from_scene_update_packet(
     Packet::Scene(SceneViewPacket {
         initial_camera: RenderCamera::default(),
         view_label: view_label.to_owned(),
-        renderables3d: vec![],
+        scene_renderables: vec![],
         locked_to_birds_eye_orientation: false,
         world_from_scene_update: Some(world_from_scene_update),
     })
@@ -102,16 +102,16 @@ pub fn world_from_scene_update_packet(
 pub struct ImageViewPacket {
     /// Frame to hold content
     ///
-    ///  1. For each `view_label`, content (i.e. renderables2d, renderables3d) will be added to
+    ///  1. For each `view_label`, content (i.e. pixel_renderables, scene_renderables) will be added to
     ///     the existing frame. If no frame exists yet, e.g. frame was always None for `view_label`,
     ///     the content is ignored.
     ///  2. If we have a new frame, that is `frame == Some(...)`, all previous content is deleted, but
     ///     content from this packet will be added.
     pub frame: Option<Frame>,
     /// List of 2d renderables
-    pub renderables2d: Vec<Renderable2d>,
-    /// List of 3d renderables
-    pub renderables3d: Vec<Renderable3d>,
+    pub pixel_renderables: Vec<PixelRenderable>,
+    /// List of scene renderables
+    pub scene_renderables: Vec<SceneRenderable>,
     /// Name of the view
     pub view_label: String,
 }
@@ -120,7 +120,7 @@ pub struct ImageViewPacket {
 #[derive(Clone, Debug)]
 pub struct SceneViewPacket {
     /// List of 3d renderables
-    pub renderables3d: Vec<Renderable3d>,
+    pub scene_renderables: Vec<SceneRenderable>,
     /// world-from-scene pose update
     pub world_from_scene_update: Option<Isometry3F64>,
     /// Name of the view

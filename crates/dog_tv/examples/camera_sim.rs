@@ -1,8 +1,8 @@
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::renderables::color::Color;
-use dog_tv_renderer::renderables::renderable3d::make_line3;
-use dog_tv_renderer::renderables::renderable3d::make_mesh3_at;
-use dog_tv_renderer::renderables::renderable3d::make_point3;
+use dog_tv_renderer::renderables::scene_renderable::make_line3;
+use dog_tv_renderer::renderables::scene_renderable::make_mesh3_at;
+use dog_tv_renderer::renderables::scene_renderable::make_point3;
 use dog_tv_renderer::RenderContext;
 use dog_tv_sim::camera_simulator::CameraSimulator;
 use sophus::image::io::png::save_as_png;

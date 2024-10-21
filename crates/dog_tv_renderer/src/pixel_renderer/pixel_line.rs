@@ -1,6 +1,6 @@
 use crate::pipeline_builder::LineVertex2;
 use crate::pipeline_builder::PipelineBuilder;
-use crate::renderables::renderable2d::LineSegments2;
+use crate::renderables::pixel_renderable::LineSegments2;
 use crate::RenderContext;
 use eframe::egui_wgpu::wgpu::util::DeviceExt;
 use std::collections::BTreeMap;
