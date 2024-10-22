@@ -1,12 +1,15 @@
 /// active_view_info
 pub mod active_view_info;
-/// 2d view
+/// image view
 pub mod image_view;
-/// 3d view
+/// plot view
+pub mod plot_view;
+/// scene view
 pub mod scene_view;
 
 use crate::interactions::InteractionEnum;
 use crate::views::image_view::ImageView;
+use crate::views::plot_view::PlotView;
 use crate::views::scene_view::SceneView;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
@@ -19,6 +22,8 @@ pub(crate) enum View {
     Scene(SceneView),
     /// view of a 2d image or empty image canvas - with potential 2d pixel and 3d scene overlay
     Image(ImageView),
+    /// graph view
+    Plot(PlotView),
 }
 
 impl HasAspectRatio for View {
@@ -26,6 +31,7 @@ impl HasAspectRatio for View {
         match self {
             View::Scene(view) => view.aspect_ratio(),
             View::Image(view) => view.aspect_ratio(),
+            View::Plot(view) => view.aspect_ratio(),
         }
     }
 }
@@ -35,6 +41,7 @@ impl View {
         match self {
             View::Scene(view) => &mut view.enabled,
             View::Image(view) => &mut view.enabled,
+            View::Plot(view) => &mut view.enabled,
         }
     }
 
@@ -42,6 +49,7 @@ impl View {
         match self {
             View::Scene(_) => "Scene".to_owned(),
             View::Image(_) => "Image".to_owned(),
+            View::Plot(_) => "Plot".to_owned(),
         }
     }
 
@@ -49,6 +57,7 @@ impl View {
         match self {
             View::Scene(view) => view.enabled,
             View::Image(view) => view.enabled,
+            View::Plot(view) => view.enabled,
         }
     }
 
@@ -56,6 +65,7 @@ impl View {
         match self {
             View::Scene(view) => &view.interaction,
             View::Image(view) => &view.interaction,
+            View::Plot(view) => &view.interaction,
         }
     }
 
@@ -63,6 +73,7 @@ impl View {
         match self {
             View::Scene(view) => view.locked_to_birds_eye_orientation,
             View::Image(_) => true,
+            View::Plot(_) => true,
         }
     }
 
@@ -70,6 +81,8 @@ impl View {
         match self {
             View::Scene(view) => view.renderer.camera_properties(),
             View::Image(view) => view.renderer.camera_properties(),
+            // not really meaningful, so we just return the default
+            View::Plot(_) => RenderCameraProperties::default(),
         }
     }
 }

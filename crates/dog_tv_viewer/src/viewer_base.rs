@@ -92,6 +92,7 @@ impl ViewerBase {
                         view_port_size = response.view_port_size
                     }
                 }
+                View::Plot(_) => {}
             }
 
             if view.interaction().is_active() && &self.active_view == view_label {
@@ -337,6 +338,7 @@ impl ViewerBase {
                                 },
                             );
                         }
+                        View::Plot(_view) => {}
                     }
                 }
             });

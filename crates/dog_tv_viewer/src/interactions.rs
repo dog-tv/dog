@@ -50,6 +50,8 @@ pub enum InteractionEnum {
     Orbital(OrbitalInteraction),
     /// in-plane interaction state
     InPlane(InplaneInteraction),
+    /// no interaction
+    No
 }
 
 impl InteractionEnum {
@@ -58,6 +60,7 @@ impl InteractionEnum {
         match self {
             InteractionEnum::Orbital(orbit) => orbit.scene_from_camera,
             InteractionEnum::InPlane(inplane) => inplane.scene_from_camera(),
+            InteractionEnum::No => Isometry3F64::identity(),
         }
     }
 
@@ -66,6 +69,7 @@ impl InteractionEnum {
         match self {
             InteractionEnum::Orbital(orbit) => orbit.zoom2d(),
             InteractionEnum::InPlane(inplane) => inplane.zoom2d(),
+            InteractionEnum::No => TranslationAndScaling::identity(),
         }
     }
 
@@ -74,6 +78,7 @@ impl InteractionEnum {
         match self {
             InteractionEnum::Orbital(orbital) => orbital.maybe_scene_focus,
             InteractionEnum::InPlane(inplane) => inplane.maybe_scene_focus,
+            InteractionEnum::No => None,
         }
     }
 
@@ -87,6 +92,7 @@ impl InteractionEnum {
                 orbital.maybe_pointer_state.is_some() || orbital.maybe_scroll_state.is_some()
             }
             InteractionEnum::InPlane(plane) => plane.maybe_scroll_state.is_some(),
+            InteractionEnum::No => false,
         }
     }
 
@@ -114,6 +120,8 @@ impl InteractionEnum {
             ),
             InteractionEnum::InPlane(inplane) => {
                 inplane.process_event(active_view, cam, response, scales, view_port_size)
+            }
+            InteractionEnum::No => {
             }
         }
     }
