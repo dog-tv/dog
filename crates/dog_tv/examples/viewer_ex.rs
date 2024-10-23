@@ -1,3 +1,5 @@
+use std::thread::spawn;
+
 use dog_tv::examples::viewer_example::make_distorted_frame;
 use dog_tv_renderer::camera::clipping_planes::ClippingPlanes;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
@@ -19,6 +21,8 @@ use sophus::sensor::dyn_camera::DynCameraF64;
 
 use crate::frame::Frame;
 use crate::pixel_renderable::make_line2;
+use crate::plot::scalar_curve::ScalarCurveStyle;
+use crate::plot::LineType;
 use crate::scene_renderable::make_line3;
 use crate::scene_renderable::make_mesh3_at;
 
@@ -152,16 +156,41 @@ fn create_scene_packet(pinhole: bool) -> Packet {
     Packet::Scene(scene_packet)
 }
 
-pub async fn run_viewer_example() {
+pub fn run_viewer_example() {
     let (message_tx, message_rx) = std::sync::mpsc::channel();
 
-    tokio::spawn(async move {
+    spawn(move || {
         let mut packets = Packets { packets: vec![] };
         packets.packets.push(create_scene_packet(true));
         packets.packets.push(create_scene_packet(false));
         packets.packets.push(create_distorted_image_packet());
         packets.packets.push(create_tiny_image_view_packet());
         message_tx.send(packets).unwrap();
+
+        let mut x: f64 = 0.0;
+
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            let sin_x = x.sin();
+
+            let plot_packets = vec![PlotViewPacket::append_to_curve(
+                ("trig0", "sin"),
+                (x, sin_x),
+                ScalarCurveStyle {
+                    color: Color::red(),
+                    line_type: LineType::default(),
+                },
+            )];
+
+            let mut packets = Packets { packets: vec![] };
+            packets
+                .packets
+                .push(Packet::Plot(plot_packets));
+            message_tx.send(packets).unwrap();
+
+            x += 0.01;
+        }
     });
 
     eframe::run_native(
@@ -178,13 +207,5 @@ pub async fn run_viewer_example() {
 }
 
 fn main() {
-    env_logger::init();
-
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async {
-            run_viewer_example().await;
-        })
+    run_viewer_example();
 }
