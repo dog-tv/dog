@@ -37,7 +37,7 @@ env_logger = "0.11"
 linked-hash-map = "0.5"
 log = "0.4"
 num-traits = "0.2"
-sophus = {git = "https://github.com/sophus-vision/sophus-rs.git", rev = "1e6b47b3227ba7ee9501a872a56309487a0cc49c"}
+sophus = {git = "https://github.com/sophus-vision/sophus-rs.git", rev = "71e86caf15f9107cde9d55e56ef40359e9b3973b"}
 wgpu = "0.20.1"
 
 [profile.release]

@@ -1,3 +1,4 @@
+use std::f64::consts::TAU;
 use std::thread::spawn;
 
 use dog_tv::examples::viewer_example::make_distorted_frame;
@@ -22,6 +23,7 @@ use sophus::sensor::dyn_camera::DynCameraF64;
 use crate::frame::Frame;
 use crate::pixel_renderable::make_line2;
 use crate::plot::scalar_curve::ScalarCurveStyle;
+use crate::plot::ClearCondition;
 use crate::plot::LineType;
 use crate::scene_renderable::make_line3;
 use crate::scene_renderable::make_mesh3_at;
@@ -170,23 +172,23 @@ pub fn run_viewer_example() {
         let mut x: f64 = 0.0;
 
         loop {
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::thread::sleep(std::time::Duration::from_millis(10));
 
             let sin_x = x.sin();
 
             let plot_packets = vec![PlotViewPacket::append_to_curve(
                 ("trig0", "sin"),
-                (x, sin_x),
+                vec![(x, sin_x)].into(),
                 ScalarCurveStyle {
-                    color: Color::red(),
+                    color: Color::orange(),
                     line_type: LineType::default(),
                 },
+                ClearCondition { max_x_range: TAU },
+                Some(x - 0.2),
             )];
 
             let mut packets = Packets { packets: vec![] };
-            packets
-                .packets
-                .push(Packet::Plot(plot_packets));
+            packets.packets.push(Packet::Plot(plot_packets));
             message_tx.send(packets).unwrap();
 
             x += 0.01;

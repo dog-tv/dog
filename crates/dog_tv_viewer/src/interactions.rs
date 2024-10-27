@@ -51,7 +51,7 @@ pub enum InteractionEnum {
     /// in-plane interaction state
     InPlane(InplaneInteraction),
     /// no interaction
-    No
+    No,
 }
 
 impl InteractionEnum {
@@ -121,8 +121,7 @@ impl InteractionEnum {
             InteractionEnum::InPlane(inplane) => {
                 inplane.process_event(active_view, cam, response, scales, view_port_size)
             }
-            InteractionEnum::No => {
-            }
+            InteractionEnum::No => {}
         }
     }
 

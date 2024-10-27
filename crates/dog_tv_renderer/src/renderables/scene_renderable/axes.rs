@@ -105,7 +105,7 @@ pub fn make_axes3(world_from_local_axes: &[Isometry3F64]) -> Vec<LineSegment3> {
 /// ```
 /// use dog_tv_renderer::renderables::scene_renderable::axes::axes3;
 /// use sophus::lie::Isometry3F64;
-/// 
+///
 /// let axes = axes3(&[Isometry3F64::identity()]).scale(0.5).line_width(3.0).build();
 /// ```
 pub fn axes3(world_from_local_axes: &[Isometry3F64]) -> Axes3Builder {

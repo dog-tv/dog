@@ -9,6 +9,8 @@ pub mod plot;
 /// scene rendeable
 pub mod scene_renderable;
 
+use std::collections::VecDeque;
+
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::lie::Isometry3F64;
 
@@ -24,6 +26,7 @@ use crate::renderables::plot::vec_conf_curve::VecConfCurveStyle;
 use crate::renderables::plot::vec_curve::NamedVecCurve;
 use crate::renderables::plot::vec_curve::VecCurve;
 use crate::renderables::plot::vec_curve::VecCurveStyle;
+use crate::renderables::plot::ClearCondition;
 use crate::renderables::scene_renderable::SceneRenderable;
 
 /// Image view renderable
@@ -144,7 +147,6 @@ pub struct SceneViewPacket {
     pub locked_to_birds_eye_orientation: bool,
 }
 
-
 /// Packet to populate a scene view
 #[derive(Clone, Debug)]
 pub enum PlotViewPacket {
@@ -160,53 +162,61 @@ pub enum PlotViewPacket {
     Vec3Conf(NamedVecConfCurve<3>),
 }
 
-impl PlotViewPacket{
-
+impl PlotViewPacket {
     /// Get the name of the plot
     pub fn name(&self) -> String {
         match self {
             PlotViewPacket::Scalar(named_scalar_curve) => named_scalar_curve.plot_name.clone(),
             PlotViewPacket::Vec2(named_vec_curve) => named_vec_curve.plot_name.clone(),
-            PlotViewPacket::Vec2Conf(named_vec_conf_curve) => named_vec_conf_curve.plot_name.clone(),
+            PlotViewPacket::Vec2Conf(named_vec_conf_curve) => {
+                named_vec_conf_curve.plot_name.clone()
+            }
             PlotViewPacket::Vec3(named_vec_curve) => named_vec_curve.plot_name.clone(),
-            PlotViewPacket::Vec3Conf(named_vec_conf_curve) => named_vec_conf_curve.plot_name.clone(),
+            PlotViewPacket::Vec3Conf(named_vec_conf_curve) => {
+                named_vec_conf_curve.plot_name.clone()
+            }
         }
     }
 }
 
-
 impl PlotViewPacket {
-
-   /// Create a new scalar curve 
+    /// Create a new scalar curve
     pub fn append_to_curve<S: Into<String>>(
         (plot, graph): (S, S),
-        (x, y): (f64, f64),
-        style: ScalarCurveStyle ,
+        data: VecDeque<(f64, f64)>,
+        style: ScalarCurveStyle,
+        clear_cond: ClearCondition,
+        v_line: Option<f64>,
     ) -> PlotViewPacket {
         let curve = NamedScalarCurve {
             plot_name: plot.into(),
             graph_name: graph.into(),
             scalar_curve: ScalarCurve {
-                data: vec![(x, y)].into(),
+                data,
                 style,
+                clear_cond,
+                v_line,
             },
         };
-
         PlotViewPacket::Scalar(curve)
     }
 
     /// Create a new 2d vector curve
     pub fn append_to_vec2_curve<S: Into<String>>(
         (plot, graph): (S, S),
-        (x, y): (f64, [f64;2]),
+        data: VecDeque<(f64, [f64; 2])>,
         style: VecCurveStyle<2>,
+        clear_cond: ClearCondition,
+        v_line: Option<f64>,
     ) -> PlotViewPacket {
         let curve = NamedVecCurve {
             plot_name: plot.into(),
             graph_name: graph.into(),
             scalar_curve: VecCurve {
-                data: vec![(x, y)].into(),
+                data,
                 style,
+                clear_cond,
+                v_line,
             },
         };
 
@@ -216,15 +226,19 @@ impl PlotViewPacket {
     /// Create a new 3d vector curve
     pub fn append_to_vec3_curve<S: Into<String>>(
         (plot, graph): (S, S),
-        (x, y): (f64, [f64;3]),
+        data: VecDeque<(f64, [f64; 3])>,
         style: VecCurveStyle<3>,
+        clear_cond: ClearCondition,
+        v_line: Option<f64>,
     ) -> PlotViewPacket {
         let curve = NamedVecCurve {
             plot_name: plot.into(),
             graph_name: graph.into(),
             scalar_curve: VecCurve {
-                data: vec![(x, y)].into(),
+                data,
                 style,
+                clear_cond,
+                v_line,
             },
         };
 
@@ -234,15 +248,19 @@ impl PlotViewPacket {
     /// Create a new 2d vector curve with confidence intervals
     pub fn append_to_vec2_conf_curve<S: Into<String>>(
         (plot, graph): (S, S),
-        (x, y): (f64, ([f64;2], [f64;2])),
+        data: plot::vec_conf_curve::DataVecDeque<2>,
         style: VecConfCurveStyle<2>,
+        clear_cond: ClearCondition,
+        v_line: Option<f64>,
     ) -> PlotViewPacket {
         let curve = NamedVecConfCurve {
             plot_name: plot.into(),
             graph_name: graph.into(),
             scalar_curve: VecConfCurve {
-                data: vec![(x, y)].into(),
+                data,
                 style,
+                clear_cond,
+                v_line,
             },
         };
 
@@ -252,15 +270,19 @@ impl PlotViewPacket {
     /// Create a new 3d vector curve with confidence intervals
     pub fn append_to_vec3_conf_curve<S: Into<String>>(
         (plot, graph): (S, S),
-        (x, y): (f64, ([f64;3], [f64;3])),
+        data: plot::vec_conf_curve::DataVecDeque<3>,
         style: VecConfCurveStyle<3>,
+        clear_cond: ClearCondition,
+        v_line: Option<f64>,
     ) -> PlotViewPacket {
         let curve = NamedVecConfCurve {
             plot_name: plot.into(),
             graph_name: graph.into(),
             scalar_curve: VecConfCurve {
-                data: vec![(x, y)].into(),
+                data,
                 style,
+                clear_cond,
+                v_line,
             },
         };
 

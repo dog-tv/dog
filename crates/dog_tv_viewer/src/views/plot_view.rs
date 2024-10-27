@@ -18,7 +18,6 @@ pub(crate) struct PlotView {
     pub(crate) aspect_ratio: f32,
 }
 
-
 /// a single curve is a collection of data points
 #[derive(Clone, Debug)]
 pub struct CurveStruct {
@@ -44,7 +43,6 @@ pub enum GraphType {
 }
 
 impl PlotView {
-
     fn create_if_new(views: &mut LinkedHashMap<String, View>, packet: &PlotViewPacket) {
         if !views.contains_key(&packet.name()) {
             views.insert(
@@ -60,7 +58,6 @@ impl PlotView {
     }
 
     pub fn update(views: &mut LinkedHashMap<String, View>, packet: PlotViewPacket) {
-
         Self::create_if_new(views, &packet);
 
         let view = views.get_mut(&packet.name()).unwrap();
@@ -77,9 +74,11 @@ impl PlotView {
                     .entry(curve_name.clone())
                     .and_modify(|curve_struct| match &mut curve_struct.curve {
                         GraphType::Scalar(g) => {
-                            g.append(
+                            g.append_to(
                                 new_value.scalar_curve.data.clone(),
                                 new_value.scalar_curve.style,
+                                new_value.scalar_curve.clear_cond,
+                                new_value.scalar_curve.v_line,
                             );
                         }
                         GraphType::Vec3(_) => {}
@@ -95,15 +94,16 @@ impl PlotView {
             PlotViewPacket::Vec2(new_value) => {
                 let curve_name = new_value.graph_name.clone();
 
-               
                 plot.curves
                     .entry(curve_name.clone())
                     .and_modify(|curve_struct| match &mut curve_struct.curve {
                         GraphType::Scalar(_s) => {}
                         GraphType::Vec2(g) => {
-                            g.append(
+                            g.append_to(
                                 new_value.scalar_curve.data.clone(),
                                 new_value.scalar_curve.style,
+                                new_value.scalar_curve.clear_cond,
+                                new_value.scalar_curve.v_line,
                             );
                         }
                         GraphType::Vec3Conf(_) => {}
@@ -118,15 +118,16 @@ impl PlotView {
             PlotViewPacket::Vec3(new_value) => {
                 let curve_name = new_value.graph_name.clone();
 
-
                 plot.curves
                     .entry(curve_name.clone())
                     .and_modify(|curve_struct| match &mut curve_struct.curve {
                         GraphType::Scalar(_s) => {}
                         GraphType::Vec3(g) => {
-                            g.append(
+                            g.append_to(
                                 new_value.scalar_curve.data.clone(),
                                 new_value.scalar_curve.style,
+                                new_value.scalar_curve.clear_cond,
+                                new_value.scalar_curve.v_line,
                             );
                         }
                         GraphType::Vec3Conf(_) => {}
@@ -147,9 +148,11 @@ impl PlotView {
                         GraphType::Scalar(_s) => {}
                         GraphType::Vec3(_) => {}
                         GraphType::Vec2Conf(g) => {
-                            g.append(
+                            g.append_to(
                                 new_value.scalar_curve.data.clone(),
                                 new_value.scalar_curve.style,
+                                new_value.scalar_curve.clear_cond,
+                                new_value.scalar_curve.v_line,
                             );
                         }
                         GraphType::Vec2(_) => {}
@@ -169,9 +172,11 @@ impl PlotView {
                         GraphType::Scalar(_s) => {}
                         GraphType::Vec3(_) => {}
                         GraphType::Vec3Conf(g) => {
-                            g.append(
+                            g.append_to(
                                 new_value.scalar_curve.data.clone(),
                                 new_value.scalar_curve.style,
+                                new_value.scalar_curve.clear_cond,
+                                new_value.scalar_curve.v_line,
                             );
                         }
                         GraphType::Vec2(_) => {}
