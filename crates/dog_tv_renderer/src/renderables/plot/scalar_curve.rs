@@ -1,9 +1,9 @@
 use std::collections::VecDeque;
 
 use crate::renderables::color::Color;
+use crate::renderables::plot::ClearCondition;
 use crate::renderables::plot::CurveTrait;
 use crate::renderables::plot::LineType;
-
 
 /// Scalar curve style
 #[derive(Copy, Clone, Debug)]
@@ -21,6 +21,12 @@ pub struct ScalarCurve {
     pub data: VecDeque<(f64, f64)>,
     /// style
     pub style: ScalarCurveStyle,
+
+    /// clear condition
+    pub clear_cond: ClearCondition,
+
+    /// v-line
+    pub v_line: Option<f64>,
 }
 
 impl ScalarCurve {
@@ -29,10 +35,14 @@ impl ScalarCurve {
         data: VecDeque<(f64, f64)>,
         color: Color,
         line_type: LineType,
+        clear_cond: ClearCondition,
+        v_line: Option<f64>,
     ) -> Self {
         ScalarCurve {
             data,
             style: ScalarCurveStyle { color, line_type },
+            clear_cond,
+            v_line,
         }
     }
 }
@@ -40,6 +50,10 @@ impl ScalarCurve {
 impl CurveTrait<f64, ScalarCurveStyle> for ScalarCurve {
     fn mut_tuples(&mut self) -> &mut std::collections::VecDeque<(f64, f64)> {
         &mut self.data
+    }
+
+    fn update_vline(&mut self, v_line: Option<f64>) {
+        self.v_line = v_line;
     }
 
     fn assign_style(&mut self, style: ScalarCurveStyle) {
