@@ -9,11 +9,6 @@ pub mod plot;
 /// scene rendeable
 pub mod scene_renderable;
 
-use std::collections::VecDeque;
-
-use sophus::image::arc_image::ArcImage4U8;
-use sophus::lie::Isometry3F64;
-
 use crate::camera::RenderCamera;
 use crate::renderables::frame::Frame;
 use crate::renderables::pixel_renderable::PixelRenderable;
@@ -28,6 +23,15 @@ use crate::renderables::plot::vec_curve::VecCurve;
 use crate::renderables::plot::vec_curve::VecCurveStyle;
 use crate::renderables::plot::ClearCondition;
 use crate::renderables::scene_renderable::SceneRenderable;
+use alloc::collections::vec_deque::VecDeque;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
+use sophus::image::arc_image::ArcImage4U8;
+use sophus::lie::Isometry3F64;
+
+extern crate alloc;
 
 /// Image view renderable
 #[derive(Clone, Debug)]
@@ -65,7 +69,7 @@ pub fn make_image_packet(
         frame,
         pixel_renderables,
         scene_renderables,
-        view_label: view_label.to_owned(),
+        view_label: view_label.to_string(),
     })
 }
 
@@ -77,7 +81,7 @@ pub fn make_scene_packet(
 ) -> Packet {
     Packet::Scene(SceneViewPacket {
         initial_camera,
-        view_label: view_label.to_owned(),
+        view_label: view_label.to_string(),
         scene_renderables,
         locked_to_birds_eye_orientation: false,
         world_from_scene_update: None,
@@ -92,7 +96,7 @@ pub fn make_birds_eye_scene_packet(
 ) -> Packet {
     Packet::Scene(SceneViewPacket {
         initial_camera,
-        view_label: view_label.to_owned(),
+        view_label: view_label.to_string(),
         scene_renderables,
         locked_to_birds_eye_orientation: true,
         world_from_scene_update: None,
@@ -106,7 +110,7 @@ pub fn world_from_scene_update_packet(
 ) -> Packet {
     Packet::Scene(SceneViewPacket {
         initial_camera: RenderCamera::default(),
-        view_label: view_label.to_owned(),
+        view_label: view_label.to_string(),
         scene_renderables: vec![],
         locked_to_birds_eye_orientation: false,
         world_from_scene_update: Some(world_from_scene_update),

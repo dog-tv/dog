@@ -1,10 +1,15 @@
 use crate::types::DOG_MULTISAMPLE_COUNT;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
+use alloc::format;
+use alloc::string::String;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 use bytemuck::Pod;
 use bytemuck::Zeroable;
-use std::sync::Arc;
 use wgpu::DepthStencilState;
+
+extern crate alloc;
 
 pub(crate) struct TargetTexture {
     pub(crate) rgba_output_format: wgpu::TextureFormat,
@@ -50,7 +55,7 @@ pub struct LineVertex2 {
 
 impl IsVertex for LineVertex2 {
     fn array_stride() -> wgpu::BufferAddress {
-        std::mem::size_of::<LineVertex2>() as wgpu::BufferAddress
+        core::mem::size_of::<LineVertex2>() as wgpu::BufferAddress
     }
 
     fn attr() -> Vec<wgpu::VertexAttribute> {
@@ -70,7 +75,7 @@ pub struct PointVertex2 {
 
 impl IsVertex for PointVertex2 {
     fn array_stride() -> wgpu::BufferAddress {
-        std::mem::size_of::<PointVertex2>() as wgpu::BufferAddress
+        core::mem::size_of::<PointVertex2>() as wgpu::BufferAddress
     }
 
     fn attr() -> Vec<wgpu::VertexAttribute> {
@@ -87,7 +92,7 @@ pub(crate) struct MeshVertex3 {
 
 impl IsVertex for MeshVertex3 {
     fn array_stride() -> wgpu::BufferAddress {
-        std::mem::size_of::<MeshVertex3>() as wgpu::BufferAddress
+        core::mem::size_of::<MeshVertex3>() as wgpu::BufferAddress
     }
 
     fn attr() -> Vec<wgpu::VertexAttribute> {
@@ -107,7 +112,7 @@ pub(crate) struct LineVertex3 {
 
 impl IsVertex for LineVertex3 {
     fn array_stride() -> wgpu::BufferAddress {
-        std::mem::size_of::<LineVertex3>() as wgpu::BufferAddress
+        core::mem::size_of::<LineVertex3>() as wgpu::BufferAddress
     }
 
     fn attr() -> Vec<wgpu::VertexAttribute> {
@@ -127,7 +132,7 @@ pub(crate) struct PointVertex3 {
 
 impl IsVertex for PointVertex3 {
     fn array_stride() -> wgpu::BufferAddress {
-        std::mem::size_of::<PointVertex3>() as wgpu::BufferAddress
+        core::mem::size_of::<PointVertex3>() as wgpu::BufferAddress
     }
 
     fn attr() -> Vec<wgpu::VertexAttribute> {
@@ -144,7 +149,7 @@ pub(crate) struct TexturedMeshVertex3 {
 
 impl IsVertex for TexturedMeshVertex3 {
     fn array_stride() -> wgpu::BufferAddress {
-        std::mem::size_of::<TexturedMeshVertex3>() as wgpu::BufferAddress
+        core::mem::size_of::<TexturedMeshVertex3>() as wgpu::BufferAddress
     }
 
     fn attr() -> Vec<wgpu::VertexAttribute> {

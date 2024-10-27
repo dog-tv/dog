@@ -17,9 +17,11 @@ use crate::textures::depth::DepthTextures;
 use crate::textures::rgba::RgbdTexture;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
+use alloc::sync::Arc;
 use sophus::lie::Isometry3F64;
-use std::sync::Arc;
 use wgpu::DepthStencilState;
+
+extern crate alloc;
 
 /// Scene renderer
 pub struct SceneRenderer {

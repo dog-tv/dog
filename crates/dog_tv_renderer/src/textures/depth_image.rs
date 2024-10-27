@@ -1,5 +1,5 @@
-use std::sync::Mutex;
-
+use crate::camera::clipping_planes::ClippingPlanesF32;
+use eframe::egui::mutex::Mutex;
 use sophus::core::linalg::SVec;
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::image::arc_image::ArcImageF32;
@@ -9,7 +9,7 @@ use sophus::image::mut_image::MutImageF32;
 use sophus::image::prelude::IsImageView;
 use sophus::image::prelude::IsMutImageView;
 
-use crate::camera::clipping_planes::ClippingPlanesF32;
+extern crate alloc;
 
 /// depth image
 pub struct DepthImage {
@@ -50,7 +50,7 @@ impl DepthImage {
 
     /// return color mapped depth
     pub fn color_mapped(&self) -> ArcImage4U8 {
-        let mut cached_image = self.color_mapped_cache.lock().unwrap();
+        let mut cached_image = self.color_mapped_cache.lock();
 
         match cached_image.as_mut() {
             Some(cached_image) => cached_image.clone(),
@@ -72,7 +72,7 @@ impl DepthImage {
 
     /// return metric depth image
     pub fn metric_depth(&self) -> ArcImageF32 {
-        let mut cached_image = self.metric_depth_cache.lock().unwrap();
+        let mut cached_image = self.metric_depth_cache.lock();
 
         match cached_image.as_mut() {
             Some(cached_image) => cached_image.clone(),

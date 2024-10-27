@@ -2,9 +2,16 @@ use crate::pipeline_builder::PipelineBuilder;
 use crate::pipeline_builder::PointVertex2;
 use crate::renderables::pixel_renderable::PointCloud2;
 use crate::RenderContext;
-use eframe::egui_wgpu::wgpu::util::DeviceExt;
-use std::collections::BTreeMap;
-use std::sync::Mutex;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
+use eframe::egui::mutex::Mutex;
+use wgpu::util::DeviceExt;
+
+extern crate alloc;
 
 pub(crate) struct Point2dEntity {
     pub(crate) vertex_data: Vec<PointVertex2>,
@@ -85,7 +92,7 @@ impl PixelPointRenderer {
 
         Self {
             pipeline: pixel_pipelines.create::<PointVertex2>(
-                "point".to_owned(),
+                "point".to_string(),
                 &point_shader,
                 None,
             ),
@@ -102,9 +109,9 @@ impl PixelPointRenderer {
             render_pass.draw(0..point.vertex_data.len() as u32, 0..1);
         }
 
-        let show_interaction_marker = self.show_interaction_marker.lock().unwrap();
+        let show_interaction_marker = self.show_interaction_marker.lock();
 
-        if show_interaction_marker.to_owned() {
+        if *show_interaction_marker {
             render_pass.set_vertex_buffer(0, self.interaction_vertex_buffer.slice(..));
             render_pass.draw(0..6, 0..1);
         }

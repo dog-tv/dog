@@ -1,5 +1,7 @@
 use crate::interactions::SceneFocus;
 use crate::interactions::ViewportScale;
+use alloc::string::String;
+use alloc::string::ToString;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
 use dog_tv_renderer::types::TranslationAndScaling;
 use eframe::egui;
@@ -7,6 +9,8 @@ use sophus::core::linalg::VecF64;
 use sophus::image::ImageSize;
 use sophus::lie::Isometry3;
 use sophus::lie::Isometry3F64;
+
+extern crate alloc;
 
 #[derive(Clone, Copy)]
 pub(crate) struct InplaneScrollState {}
@@ -23,7 +27,7 @@ pub struct InplaneInteraction {
 impl InplaneInteraction {
     pub(crate) fn new(view_name: &str) -> Self {
         InplaneInteraction {
-            view_name: view_name.to_owned(),
+            view_name: view_name.to_string(),
             maybe_scroll_state: None,
             maybe_scene_focus: None,
             zoom2d: TranslationAndScaling::identity(),

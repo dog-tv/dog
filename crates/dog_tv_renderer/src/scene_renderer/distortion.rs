@@ -2,10 +2,14 @@ use crate::textures::depth::DepthTextures;
 use crate::textures::rgba::RgbdTexture;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
+use alloc::format;
+use alloc::sync::Arc;
+use alloc::vec;
 use sophus::image::ImageSize;
-use std::sync::Arc;
 use wgpu::BindGroup;
 use wgpu::BindGroupLayout;
+
+extern crate alloc;
 
 /// Scene line renderer
 pub struct DistortionRenderer {
@@ -265,7 +269,7 @@ impl DistortionRenderer {
                 }
                 context
                     .wgpu_queue
-                    .submit(std::iter::once(command_encoder.finish()));
+                    .submit(core::iter::once(command_encoder.finish()));
             }
             None => {
                 let bind_group = self.create_bind_group(context, rgba, depth, &None);
@@ -289,7 +293,7 @@ impl DistortionRenderer {
                 }
                 context
                     .wgpu_queue
-                    .submit(std::iter::once(command_encoder.finish()));
+                    .submit(core::iter::once(command_encoder.finish()));
             }
         }
     }

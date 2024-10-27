@@ -6,6 +6,7 @@ pub mod orbit_interaction;
 use crate::interactions::inplane_interaction::InplaneInteraction;
 use crate::interactions::orbit_interaction::OrbitalInteraction;
 use crate::views::ViewportSize;
+use alloc::string::String;
 use dog_tv_renderer::camera::clipping_planes::ClippingPlanesF64;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
 use dog_tv_renderer::renderables::color::Color;
@@ -17,6 +18,8 @@ use sophus::core::linalg::VecF64;
 use sophus::image::arc_image::ArcImageF32;
 use sophus::image::ImageSize;
 use sophus::lie::Isometry3F64;
+
+extern crate alloc;
 
 /// Viewport scale
 pub struct ViewportScale {

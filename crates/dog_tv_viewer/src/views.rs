@@ -11,10 +11,15 @@ use crate::interactions::InteractionEnum;
 use crate::views::image_view::ImageView;
 use crate::views::plot_view::PlotView;
 use crate::views::scene_view::SceneView;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use linked_hash_map::LinkedHashMap;
 use sophus::image::ImageSize;
+
+extern crate alloc;
 
 /// The view enum.
 pub(crate) enum View {
@@ -47,9 +52,9 @@ impl View {
 
     pub(crate) fn view_type(&mut self) -> String {
         match self {
-            View::Scene(_) => "Scene".to_owned(),
-            View::Image(_) => "Image".to_owned(),
-            View::Plot(_) => "Plot".to_owned(),
+            View::Scene(_) => "Scene".to_string(),
+            View::Image(_) => "Image".to_string(),
+            View::Plot(_) => "Plot".to_string(),
         }
     }
 
@@ -90,13 +95,13 @@ impl View {
 pub(crate) fn get_median_aspect_ratio_and_num(
     views: &LinkedHashMap<String, View>,
 ) -> Option<(f32, usize)> {
-    let mut aspect_ratios = std::vec::Vec::with_capacity(views.len());
+    let mut aspect_ratios = Vec::with_capacity(views.len());
     for (_label, widget) in views.iter() {
         if widget.enabled() {
             aspect_ratios.push(widget.aspect_ratio());
         }
     }
-    aspect_ratios.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    aspect_ratios.sort_by(|a, b| a.partial_cmp(b).unwrap_or(core::cmp::Ordering::Equal));
     let n = aspect_ratios.len();
     if n == 0 {
         return None;

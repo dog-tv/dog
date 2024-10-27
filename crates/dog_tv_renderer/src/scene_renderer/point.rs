@@ -3,10 +3,16 @@ use crate::pipeline_builder::PointVertex3;
 use crate::renderables::scene_renderable::PointCloud3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use eframe::egui_wgpu::wgpu::util::DeviceExt;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
 use sophus::lie::Isometry3F64;
-use std::collections::BTreeMap;
+use wgpu::util::DeviceExt;
 
+extern crate alloc;
 pub(crate) struct Point3dEntity {
     pub(crate) vertex_data: Vec<PointVertex3>,
     pub(crate) vertex_buffer: wgpu::Buffer,
@@ -69,7 +75,7 @@ impl ScenePointRenderer {
         });
 
         Self {
-            pipeline: scene_pipelines.create::<PointVertex3>("point".to_owned(), &shader, None),
+            pipeline: scene_pipelines.create::<PointVertex3>("point".to_string(), &shader, None),
             point_table: BTreeMap::new(),
         }
     }

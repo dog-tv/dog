@@ -2,8 +2,15 @@ use crate::pipeline_builder::LineVertex2;
 use crate::pipeline_builder::PipelineBuilder;
 use crate::renderables::pixel_renderable::LineSegments2;
 use crate::RenderContext;
-use eframe::egui_wgpu::wgpu::util::DeviceExt;
-use std::collections::BTreeMap;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
+use wgpu::util::DeviceExt;
+
+extern crate alloc;
 
 pub(crate) struct Line2dEntity {
     pub(crate) vertex_data: Vec<LineVertex2>,
@@ -80,7 +87,7 @@ impl PixelLineRenderer {
 
         Self {
             lines_table: BTreeMap::new(),
-            pipeline: pixel_pipelines.create::<LineVertex2>("line".to_owned(), &line_shader, None),
+            pipeline: pixel_pipelines.create::<LineVertex2>("line".to_string(), &line_shader, None),
         }
     }
 

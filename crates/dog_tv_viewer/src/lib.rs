@@ -1,5 +1,6 @@
 #![deny(missing_docs)]
 #![allow(clippy::needless_range_loop)]
+#![no_std]
 
 //! Simple viewer for 2D and 3D visualizations.
 
