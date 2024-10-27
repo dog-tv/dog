@@ -16,12 +16,15 @@ use crate::types::SceneFocusMarker;
 use crate::types::TranslationAndScaling;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 use sophus::core::IsTensorLike;
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::image::image_view::IsImageView;
 use sophus::image::ImageSize;
 use sophus::lie::Isometry3F64;
-use std::sync::Arc;
+
+extern crate alloc;
 
 /// Offscreen renderer
 pub struct OffscreenRenderer {

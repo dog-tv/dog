@@ -1,7 +1,6 @@
-use core::f32;
-
 use crate::types::DOG_MULTISAMPLE_COUNT;
 use crate::RenderContext;
+use core::f32;
 use eframe::egui::{self};
 use sophus::image::arc_image::ArcImage4U16;
 use sophus::image::arc_image::ArcImage4U8;
@@ -194,12 +193,8 @@ impl RgbdTexture {
         {
             // Wait for buffer to be mapped and retrieve data
             let buffer_slice = buffer.slice(..);
-            let (tx, rx) = std::sync::mpsc::channel();
-            buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-                tx.send(result).unwrap();
-            });
+            buffer_slice.map_async(wgpu::MapMode::Read, move |_result| {});
             state.wgpu_device.poll(wgpu::Maintain::Wait);
-            rx.try_recv().unwrap().unwrap();
 
             let data = buffer_slice.get_mapped_range();
 

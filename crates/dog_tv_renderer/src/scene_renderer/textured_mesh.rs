@@ -3,12 +3,19 @@ use crate::pipeline_builder::TexturedMeshVertex3;
 use crate::renderables::scene_renderable::TexturedTriangleMesh3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use eframe::egui_wgpu::wgpu::util::DeviceExt;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
 use sophus::core::IsTensorLike;
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::image::image_view::IsImageView;
 use sophus::lie::Isometry3F64;
-use std::collections::BTreeMap;
+use wgpu::util::DeviceExt;
+
+extern crate alloc;
 
 /// mesh entity
 pub struct TexturedMeshEntity {
@@ -177,7 +184,7 @@ impl TexturedMeshRenderer {
 
         Self {
             pipeline: scene_pipelines.create::<TexturedMeshVertex3>(
-                "textured-mesh".to_owned(),
+                "textured-mesh".to_string(),
                 &shader,
                 Some(wgpu::Face::Back),
             ),

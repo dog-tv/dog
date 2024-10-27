@@ -1,5 +1,9 @@
 // ported from https://github.com/farm-ng/farm-ng-core/blob/main/rs/plotting/src/plotter_gui/mod.rs
 
+use crate::interactions::InteractionEnum;
+use crate::views::View;
+use alloc::collections::btree_map::BTreeMap;
+use alloc::string::String;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::renderables::plot::scalar_curve::ScalarCurve;
 use dog_tv_renderer::renderables::plot::vec_conf_curve::VecConfCurve;
@@ -8,13 +12,12 @@ use dog_tv_renderer::renderables::plot::CurveTrait;
 use dog_tv_renderer::renderables::PlotViewPacket;
 use linked_hash_map::LinkedHashMap;
 
-use crate::interactions::InteractionEnum;
-use crate::views::View;
+extern crate alloc;
 
 pub(crate) struct PlotView {
     pub(crate) enabled: bool,
     pub(crate) interaction: InteractionEnum,
-    pub curves: std::collections::BTreeMap<String, CurveStruct>,
+    pub curves: BTreeMap<String, CurveStruct>,
     pub(crate) aspect_ratio: f32,
 }
 
@@ -50,7 +53,7 @@ impl PlotView {
                 View::Plot(PlotView {
                     enabled: true,
                     interaction: InteractionEnum::No,
-                    curves: std::collections::BTreeMap::new(),
+                    curves: BTreeMap::new(),
                     aspect_ratio: 1.0,
                 }),
             );

@@ -1,5 +1,9 @@
 // ported from https://github.com/farm-ng/farm-ng-core/tree/main/rs/plotting/src/graphs
 
+use alloc::collections::vec_deque::VecDeque;
+
+extern crate alloc;
+
 /// scalar curve
 pub mod scalar_curve;
 /// vec curve with confidence interval
@@ -17,12 +21,12 @@ pub struct ClearCondition {
 /// Curve trait
 pub trait CurveTrait<DataChunk, Style> {
     /// mut tuples
-    fn mut_tuples(&mut self) -> &mut std::collections::VecDeque<(f64, DataChunk)>;
+    fn mut_tuples(&mut self) -> &mut VecDeque<(f64, DataChunk)>;
 
     /// append
     fn append_to(
         &mut self,
-        mut new_tuples: std::collections::VecDeque<(f64, DataChunk)>,
+        mut new_tuples: VecDeque<(f64, DataChunk)>,
         style: Style,
         clear_cond: ClearCondition,
         v_line: Option<f64>,

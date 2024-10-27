@@ -16,13 +16,23 @@ dog_tv_sim.workspace = true
 dog_tv_viewer.workspace = true
 
 approx.workspace = true
-assertables.workspace = true
 bytemuck.workspace = true
 eframe.workspace = true
 egui-wgpu.workspace = true
 egui_extras.workspace = true
 env_logger.workspace = true
+thingbuf.workspace = true
 sophus.workspace = true
+tokio = { version = "1", features = ["full"] }
 wgpu.workspace = true
 
-tokio = {version = "1", features = ["full"]}
+[features]
+std = ["sophus/std"]
+
+[[example]]
+name = "camera_sim"
+required-features = ["std"]
+
+[[example]]
+name = "viewer_ex"
+required-features = ["std"]

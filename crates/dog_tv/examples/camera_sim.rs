@@ -1,3 +1,5 @@
+#![cfg(feature = "std")]
+
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::renderables::color::Color;
 use dog_tv_renderer::renderables::scene_renderable::make_line3;
@@ -64,5 +66,5 @@ fn main() {
         .unwrap()
         .block_on(async {
             run_offscreen().await;
-        })
+        });
 }

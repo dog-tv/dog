@@ -3,10 +3,16 @@ use crate::pipeline_builder::PipelineBuilder;
 use crate::renderables::scene_renderable::LineSegments3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use eframe::egui_wgpu::wgpu::util::DeviceExt;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
 use sophus::lie::Isometry3F64;
-use std::collections::BTreeMap;
+use wgpu::util::DeviceExt;
 
+extern crate alloc;
 pub(crate) struct Line3dEntity {
     pub(crate) vertex_data: Vec<LineVertex3>,
     pub(crate) vertex_buffer: wgpu::Buffer,
@@ -83,7 +89,7 @@ impl SceneLineRenderer {
                 });
 
         Self {
-            pipeline: scene_pipelines.create::<LineVertex3>("line".to_owned(), &shader, None),
+            pipeline: scene_pipelines.create::<LineVertex3>("line".to_string(), &shader, None),
             line_table: BTreeMap::new(),
         }
     }

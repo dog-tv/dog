@@ -3,9 +3,16 @@ use crate::pipeline_builder::PipelineBuilder;
 use crate::renderables::scene_renderable::TriangleMesh3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use eframe::egui_wgpu::wgpu::util::DeviceExt;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
 use sophus::lie::Isometry3F64;
-use std::collections::BTreeMap;
+use wgpu::util::DeviceExt;
+
+extern crate alloc;
 
 pub(crate) struct Mesh3dEntity {
     pub(crate) vertex_data: Vec<MeshVertex3>,
@@ -80,12 +87,12 @@ impl MeshRenderer {
 
         Self {
             pipeline_with_culling: scene_pipelines.create::<MeshVertex3>(
-                "mesh with culling".to_owned(),
+                "mesh with culling".to_string(),
                 &shader,
                 Some(wgpu::Face::Back),
             ),
             pipeline_without_culling: scene_pipelines.create::<MeshVertex3>(
-                "mesh".to_owned(),
+                "mesh".to_string(),
                 &shader,
                 Some(wgpu::Face::Back),
             ),

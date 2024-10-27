@@ -1,6 +1,13 @@
-use std::f64::consts::TAU;
-use std::thread::spawn;
+#![cfg(feature = "std")]
 
+use crate::frame::Frame;
+use crate::pixel_renderable::make_line2;
+use crate::plot::scalar_curve::ScalarCurveStyle;
+use crate::plot::ClearCondition;
+use crate::plot::LineType;
+use crate::scene_renderable::make_line3;
+use crate::scene_renderable::make_mesh3_at;
+use core::f64::consts::TAU;
 use dog_tv::examples::viewer_example::make_distorted_frame;
 use dog_tv_renderer::camera::clipping_planes::ClippingPlanes;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
@@ -19,18 +26,12 @@ use sophus::image::ImageSize;
 use sophus::lie::prelude::IsVector;
 use sophus::lie::Isometry3;
 use sophus::sensor::dyn_camera::DynCameraF64;
-
-use crate::frame::Frame;
-use crate::pixel_renderable::make_line2;
-use crate::plot::scalar_curve::ScalarCurveStyle;
-use crate::plot::ClearCondition;
-use crate::plot::LineType;
-use crate::scene_renderable::make_line3;
-use crate::scene_renderable::make_mesh3_at;
+use std::thread::spawn;
+use thingbuf::mpsc::blocking::channel;
 
 fn create_distorted_image_packet() -> Packet {
     let mut image_packet = ImageViewPacket {
-        view_label: "distorted image".to_owned(),
+        view_label: "distorted image".to_string(),
         scene_renderables: vec![],
         pixel_renderables: vec![],
         frame: Some(make_distorted_frame()),
@@ -76,7 +77,7 @@ fn create_tiny_image_view_packet() -> Packet {
     *img.mut_pixel(2, 1) = 0.6;
 
     let mut image_packet = ImageViewPacket {
-        view_label: "tiny image".to_owned(),
+        view_label: "tiny image".to_string(),
         scene_renderables: vec![],
         pixel_renderables: vec![],
         frame: Some(Frame::from_image(&img.to_shared().to_rgba())),
@@ -115,8 +116,8 @@ fn create_scene_packet(pinhole: bool) -> Packet {
 
     let mut scene_packet = SceneViewPacket {
         view_label: match pinhole {
-            false => "scene - distorted".to_owned(),
-            true => "scene - bird's eye".to_owned(),
+            false => "scene - distorted".to_string(),
+            true => "scene - bird's eye".to_string(),
         },
         scene_renderables: vec![],
         initial_camera: initial_camera.clone(),
@@ -159,7 +160,7 @@ fn create_scene_packet(pinhole: bool) -> Packet {
 }
 
 pub fn run_viewer_example() {
-    let (message_tx, message_rx) = std::sync::mpsc::channel();
+    let (message_tx, message_rx) = channel(50);
 
     spawn(move || {
         let mut packets = Packets { packets: vec![] };

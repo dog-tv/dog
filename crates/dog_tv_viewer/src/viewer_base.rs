@@ -7,6 +7,11 @@ use crate::views::plot_view::GraphType;
 use crate::views::plot_view::PlotView;
 use crate::views::scene_view::SceneView;
 use crate::views::View;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::renderables::color::Color;
 use dog_tv_renderer::renderables::plot::LineType;
@@ -20,16 +25,18 @@ use sophus::image::arc_image::ArcImageF32;
 use sophus::image::ImageSize;
 use sophus::prelude::HasParams;
 use sophus::prelude::IsTranslationProductGroup;
-use std::collections::HashMap;
+use thingbuf::mpsc::blocking::Receiver;
+
+extern crate alloc;
 
 /// Viewer top-level struct.
 pub struct ViewerBase {
     state: RenderContext,
     views: LinkedHashMap<String, View>,
-    message_recv: std::sync::mpsc::Receiver<Packets>,
+    message_recv: Receiver<Packets>,
     show_depth: bool,
     backface_culling: bool,
-    responses: HashMap<String, ResponseStruct>,
+    responses: BTreeMap<String, ResponseStruct>,
     active_view: String,
     active_view_info: Option<ActiveViewInfo>,
 }
@@ -43,17 +50,14 @@ pub(crate) struct ResponseStruct {
 
 impl ViewerBase {
     /// Create a new viewer.
-    pub fn new(
-        render_state: RenderContext,
-        message_recv: std::sync::mpsc::Receiver<Packets>,
-    ) -> ViewerBase {
+    pub fn new(render_state: RenderContext, message_recv: Receiver<Packets>) -> ViewerBase {
         ViewerBase {
             state: render_state.clone(),
             views: LinkedHashMap::new(),
             message_recv,
             show_depth: false,
             backface_culling: false,
-            responses: HashMap::new(),
+            responses: BTreeMap::new(),
             active_view_info: None,
             active_view: Default::default(),
         }

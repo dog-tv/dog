@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
 use dog_tv_renderer::renderables::scene_renderable::SceneRenderable;
@@ -5,6 +6,8 @@ use dog_tv_renderer::textures::depth_image::DepthImage;
 use dog_tv_renderer::RenderContext;
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::lie::Isometry3F64;
+
+extern crate alloc;
 
 /// camera simulator
 pub struct CameraSimulator {

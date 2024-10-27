@@ -11,7 +11,10 @@ use crate::pixel_renderer::pixel_point::PixelPointRenderer;
 use crate::types::SceneFocusMarker;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use std::sync::Arc;
+use alloc::sync::Arc;
+use alloc::vec;
+
+extern crate alloc;
 
 /// Renderer for pixel data
 pub struct PixelRenderer {
@@ -43,7 +46,7 @@ impl PixelRenderer {
         state: &RenderContext,
         marker: &Option<SceneFocusMarker>,
     ) {
-        *self.point_renderer.show_interaction_marker.lock().unwrap() = match marker {
+        *self.point_renderer.show_interaction_marker.lock() = match marker {
             Some(marker) => {
                 let mut vertex_data = vec![];
 

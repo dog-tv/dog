@@ -1,8 +1,10 @@
-use std::collections::VecDeque;
-
 use crate::renderables::color::Color;
 use crate::renderables::plot::ClearCondition;
 use crate::renderables::plot::CurveTrait;
+use alloc::collections::vec_deque::VecDeque;
+use alloc::string::String;
+
+extern crate alloc;
 
 /// VecConfCurve
 #[derive(Clone, Debug)]
@@ -49,7 +51,7 @@ impl<const N: usize> VecConfCurve<N> {
 }
 
 impl<const N: usize> CurveTrait<([f64; N], [f64; N]), VecConfCurveStyle<N>> for VecConfCurve<N> {
-    fn mut_tuples(&mut self) -> &mut std::collections::VecDeque<(f64, ([f64; N], [f64; N]))> {
+    fn mut_tuples(&mut self) -> &mut VecDeque<(f64, ([f64; N], [f64; N]))> {
         &mut self.data
     }
 

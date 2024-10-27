@@ -1,9 +1,11 @@
-use std::collections::VecDeque;
-
 use crate::renderables::color::Color;
 use crate::renderables::plot::ClearCondition;
 use crate::renderables::plot::CurveTrait;
 use crate::renderables::plot::LineType;
+use alloc::collections::vec_deque::VecDeque;
+use alloc::string::String;
+
+extern crate alloc;
 
 /// Scalar curve style
 #[derive(Copy, Clone, Debug)]
@@ -48,7 +50,7 @@ impl ScalarCurve {
 }
 
 impl CurveTrait<f64, ScalarCurveStyle> for ScalarCurve {
-    fn mut_tuples(&mut self) -> &mut std::collections::VecDeque<(f64, f64)> {
+    fn mut_tuples(&mut self) -> &mut VecDeque<(f64, f64)> {
         &mut self.data
     }
 

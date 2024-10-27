@@ -1,8 +1,9 @@
+use crate::types::DOG_MULTISAMPLE_COUNT;
+use alloc::sync::Arc;
 use eframe::egui_wgpu;
 use eframe::epaint::mutex::RwLock;
-use std::sync::Arc;
 
-use crate::types::DOG_MULTISAMPLE_COUNT;
+extern crate alloc;
 
 /// The render context
 #[derive(Clone)]
