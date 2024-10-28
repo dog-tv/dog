@@ -4,10 +4,10 @@ use alloc::collections::vec_deque::VecDeque;
 
 extern crate alloc;
 
+/// vec curve with confidence interval
+pub mod curve_vec_with_conf;
 /// scalar curve
 pub mod scalar_curve;
-/// vec curve with confidence interval
-pub mod vec_conf_curve;
 /// vec curve
 pub mod vec_curve;
 

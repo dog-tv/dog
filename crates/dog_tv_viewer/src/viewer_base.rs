@@ -15,8 +15,8 @@ use alloc::vec;
 use alloc::vec::Vec;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::renderables::color::Color;
-use dog_tv_renderer::renderables::plot::vec_conf_curve::VecConfCurve;
-use dog_tv_renderer::renderables::plot::vec_curve::VecCurve;
+use dog_tv_renderer::renderables::plot::curve_vec_with_conf::CurveVecWithConf;
+use dog_tv_renderer::renderables::plot::vec_curve::CurveVec;
 use dog_tv_renderer::renderables::plot::LineType;
 use dog_tv_renderer::renderables::Packet;
 use dog_tv_renderer::renderables::Packets;
@@ -397,7 +397,7 @@ impl ViewerBase {
                 (color.b * 255.0).clamp(0.0, 255.0) as u8,
             )
         }
-        fn show_vec<const N: usize>(curve_name: &str, g: &VecCurve<N>, plot_ui: &mut PlotUi) {
+        fn show_vec<const N: usize>(curve_name: &str, g: &CurveVec<N>, plot_ui: &mut PlotUi) {
             if let Some(v_line) = g.v_line {
                 plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
             }
@@ -418,7 +418,7 @@ impl ViewerBase {
                         let plot_points = egui_plot::PlotPoints::Owned(p.clone());
                         plot_ui.line(
                             egui_plot::Line::new(plot_points)
-                                .color(color_cnv(g.style.color[i]))
+                                .color(color_cnv(g.style.colors[i]))
                                 .name(format!("{}-{}", curve_name, i)),
                         );
                     }
@@ -428,7 +428,7 @@ impl ViewerBase {
                         let plot_points = egui_plot::PlotPoints::Owned(p.clone());
                         plot_ui.line(
                             egui_plot::Line::new(plot_points)
-                                .color(color_cnv(g.style.color[i]))
+                                .color(color_cnv(g.style.colors[i]))
                                 .name(format!("{}-{}", curve_name, i)),
                         );
                     }
@@ -437,7 +437,7 @@ impl ViewerBase {
         }
         fn show_vec_conf<const N: usize>(
             curve_name: &str,
-            g: &VecConfCurve<N>,
+            g: &CurveVecWithConf<N>,
             plot_ui: &mut PlotUi,
         ) {
             if let Some(v_line) = g.v_line {
@@ -473,9 +473,9 @@ impl ViewerBase {
                     }
                 };
 
-            plot_points(points, g.style.color, LineStyle::Solid);
-            plot_points(up_points, g.style.color, LineStyle::dashed_dense());
-            plot_points(down_points, g.style.color, LineStyle::dashed_dense());
+            plot_points(points, g.style.colors, LineStyle::Solid);
+            plot_points(up_points, g.style.colors, LineStyle::dashed_dense());
+            plot_points(down_points, g.style.colors, LineStyle::dashed_dense());
         }
 
         ui.add_sized(

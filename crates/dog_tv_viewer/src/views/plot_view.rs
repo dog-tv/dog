@@ -5,9 +5,9 @@ use crate::views::View;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::string::String;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
+use dog_tv_renderer::renderables::plot::curve_vec_with_conf::CurveVecWithConf;
 use dog_tv_renderer::renderables::plot::scalar_curve::ScalarCurve;
-use dog_tv_renderer::renderables::plot::vec_conf_curve::VecConfCurve;
-use dog_tv_renderer::renderables::plot::vec_curve::VecCurve;
+use dog_tv_renderer::renderables::plot::vec_curve::CurveVec;
 use dog_tv_renderer::renderables::plot::CurveTrait;
 use dog_tv_renderer::renderables::PlotViewPacket;
 use linked_hash_map::LinkedHashMap;
@@ -36,13 +36,13 @@ pub enum GraphType {
     /// Scalar curve
     Scalar(ScalarCurve),
     /// 2d vector curve
-    Vec2(VecCurve<2>),
+    Vec2(CurveVec<2>),
     /// 3d vector curve
-    Vec3(VecCurve<3>),
+    Vec3(CurveVec<3>),
     /// 2d vector curve with confidence intervals
-    Vec2Conf(VecConfCurve<2>),
+    Vec2Conf(CurveVecWithConf<2>),
     /// 3d vector curve with confidence intervals
-    Vec3Conf(VecConfCurve<3>),
+    Vec3Conf(CurveVecWithConf<3>),
 }
 
 impl PlotView {
@@ -95,7 +95,7 @@ impl PlotView {
                     });
             }
             PlotViewPacket::Vec2(new_value) => {
-                let curve_name = new_value.graph_name.clone();
+                let curve_name = new_value.curve_name.clone();
 
                 plot.curves
                     .entry(curve_name.clone())
@@ -119,7 +119,7 @@ impl PlotView {
                     });
             }
             PlotViewPacket::Vec3(new_value) => {
-                let curve_name = new_value.graph_name.clone();
+                let curve_name = new_value.curve_name.clone();
 
                 plot.curves
                     .entry(curve_name.clone())
@@ -143,7 +143,7 @@ impl PlotView {
                     });
             }
             PlotViewPacket::Vec2Conf(new_value) => {
-                let curve_name = new_value.graph_name.clone();
+                let curve_name = new_value.curve_name.clone();
 
                 plot.curves
                     .entry(curve_name.clone())
@@ -167,7 +167,7 @@ impl PlotView {
                     });
             }
             PlotViewPacket::Vec3Conf(new_value) => {
-                let curve_name = new_value.graph_name.clone();
+                let curve_name = new_value.curve_name.clone();
 
                 plot.curves
                     .entry(curve_name.clone())

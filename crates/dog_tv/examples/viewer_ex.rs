@@ -3,7 +3,6 @@
 use crate::frame::Frame;
 use crate::pixel_renderable::make_line2;
 use crate::plot::scalar_curve::ScalarCurveStyle;
-use crate::plot::vec_conf_curve::VecConfCurveStyle;
 use crate::plot::ClearCondition;
 use crate::plot::LineType;
 use crate::scene_renderable::make_line3;
@@ -15,7 +14,8 @@ use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::camera::RenderCamera;
 use dog_tv_renderer::renderables::color::Color;
 use dog_tv_renderer::renderables::pixel_renderable::make_point2;
-use dog_tv_renderer::renderables::plot::vec_curve::VecCurveStyle;
+use dog_tv_renderer::renderables::plot::curve_vec_with_conf::CurveVecWithConfStyle;
+use dog_tv_renderer::renderables::plot::vec_curve::CurveVecStyle;
 use dog_tv_renderer::renderables::scene_renderable::make_point3;
 use dog_tv_renderer::renderables::*;
 use dog_tv_renderer::RenderContext;
@@ -192,21 +192,21 @@ pub fn run_viewer_example() {
                     ClearCondition { max_x_range: TAU },
                     Some(x - 0.2),
                 ),
-                PlotViewPacket::append_to_vec3_curve(
+                PlotViewPacket::append_to_curve_vec3(
                     ("curve-vec", ("sin_cos_tan")),
                     vec![(x, [sin_x, cos_x, tan_x])].into(),
-                    VecCurveStyle {
-                        color: [Color::red(), Color::green(), Color::blue()],
+                    CurveVecStyle {
+                        colors: [Color::red(), Color::green(), Color::blue()],
                         line_type: LineType::default(),
                     },
                     ClearCondition { max_x_range: TAU },
                     Some(x - 0.2),
                 ),
-                PlotViewPacket::append_to_vec2_conf_curve(
+                PlotViewPacket::append_to_curve_vec2_with_conf(
                     ("curve-vec +- e", ("sin_cos")),
                     vec![(x, ([sin_x, cos_x], [0.1 * sin_x, 0.1 * sin_x]))].into(),
-                    VecConfCurveStyle {
-                        color: [Color::red(), Color::green()],
+                    CurveVecWithConfStyle {
+                        colors: [Color::red(), Color::green()],
                     },
                     ClearCondition { max_x_range: TAU },
                     Some(x - 0.2),
