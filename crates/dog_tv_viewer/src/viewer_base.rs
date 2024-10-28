@@ -7,6 +7,7 @@ use crate::views::plot_view::GraphType;
 use crate::views::plot_view::PlotView;
 use crate::views::scene_view::SceneView;
 use crate::views::View;
+use crate::views::ViewportSize;
 use alloc::collections::BTreeMap;
 use alloc::format;
 use alloc::string::String;
@@ -14,11 +15,16 @@ use alloc::vec;
 use alloc::vec::Vec;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::renderables::color::Color;
+use dog_tv_renderer::renderables::plot::vec_conf_curve::VecConfCurve;
+use dog_tv_renderer::renderables::plot::vec_curve::VecCurve;
 use dog_tv_renderer::renderables::plot::LineType;
 use dog_tv_renderer::renderables::Packet;
 use dog_tv_renderer::renderables::Packets;
 use dog_tv_renderer::RenderContext;
 use eframe::egui;
+use eframe::egui::Ui;
+use egui_plot::LineStyle;
+use egui_plot::PlotUi;
 use egui_plot::VLine;
 use linked_hash_map::LinkedHashMap;
 use sophus::image::arc_image::ArcImageF32;
@@ -251,13 +257,11 @@ impl ViewerBase {
             let (max_width, max_height) = maybe_max_size.unwrap();
 
             ui0.horizontal_wrapped(|ui| {
-
                 // for loop to draw all the views, but not the plots yet
                 for (view_label, view) in self.views.iter_mut() {
                     if !view.enabled() {
                         continue;
                     }
-
                     let view_aspect_ratio = view.aspect_ratio();
                     let adjusted_size =
                         get_adjusted_view_size(view_aspect_ratio, max_width, max_height);
@@ -366,236 +370,174 @@ impl ViewerBase {
                         get_adjusted_view_size(view_aspect_ratio, max_width, max_height);
                     match view {
                         View::Scene(_) => {
-                        // no-op
+                            // no-op
                         }
                         View::Image(_) => {
-                           // no-op
+                            // no-op
                         }
                         View::Plot(view) => {
-
-
-
-                            let plot_name = view_label.clone();
-
-                            let plot = egui_plot::Plot::new(plot_name)
-                            .legend(egui_plot::Legend::default().position(egui_plot::Corner::LeftTop))
-                            .height(adjusted_size.height)
-                            .width(adjusted_size.width);
-
-                            ui.add_sized([adjusted_size.width, adjusted_size.height], |ui: &mut egui::Ui| {
-
-                                plot.show(ui, |plot_ui| {
-
-                                let color_cnv = |color: dog_tv_renderer::renderables::color::Color| {
-                                    egui::Color32::from_rgb((color.r * 255.0).clamp(0.0, 255.0) as u8 ,
-                                    (color.g * 255.0).clamp(0.0, 255.0) as u8,
-                                    (color.b * 255.0).clamp(0.0, 255.0) as u8)
-                                };
-
-
-                                for (curve_name, graph_data) in &mut  view.curves {
-                                    if !graph_data.show_graph {
-                                        continue;
-                                    }
-
-                                    match &graph_data.curve {
-                                        GraphType::Scalar(g) => {
-                                            if let Some(v_line) = g.v_line {
-                                                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
-
-                                            }
-                                            let mut points = vec![];
-
-                                            for (x, y) in &g.data {
-                                                points.push(egui_plot::PlotPoint::new(*x, *y));
-                                            }
-
-                                            let plot_points = egui_plot::PlotPoints::Owned(points);
-
-                                            match g.style.line_type {
-                                                LineType::LineStrip => {
-                                                    plot_ui.line(
-                                                        egui_plot::Line::new(plot_points)
-                                                            .color(color_cnv(g.style.color))
-                                                            .name(curve_name),
-                                                    );
-                                                }
-                                                LineType::Points => {
-                                                    plot_ui.points(
-                                                        egui_plot::Points::new(plot_points)
-                                                        .color(color_cnv(g.style.color))
-                                                        .name(curve_name),
-                                                    );
-                                                }
-                                            }
-                                        }
-                                        GraphType::Vec3(g) => {
-                                            if let Some(v_line) = g.v_line {
-                                                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
-                                            }
-                                            let mut points = [vec![], vec![], vec![]];
-
-                                            for (x, y) in &g.data {
-
-                                                for i in 0..3 {
-                                                    points[i].push(egui_plot::PlotPoint::new(*x, y[i]));
-                                                }
-
-                                            }
-
-                                            match g.style.line_type {
-                                                LineType::LineStrip => {
-                                                    for (i, p) in points.iter().enumerate().take(3) {
-
-                                                            let plot_points =
-                                                                egui_plot::PlotPoints::Owned(p.clone());
-                                                            plot_ui.line(
-                                                                egui_plot::Line::new(plot_points)
-                                                                .color(color_cnv(g.style.color[i]))
-                                                                .name(format!("{}-{}", curve_name, i)),
-                                                            );
-
-                                                    }
-                                                }
-                                                LineType::Points => {
-                                                    for (i, p) in points.iter().enumerate().take(3) {
-                                                            let plot_points =
-                                                                egui_plot::PlotPoints::Owned(p.clone());
-                                                            plot_ui.line(
-                                                                egui_plot::Line::new(plot_points)
-                                                                .color(color_cnv(g.style.color[i]))
-                                                                .name(format!("{}-{}", curve_name, i)),
-                                                            );
-
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        GraphType::Vec3Conf(g) => {
-                                            if let Some(v_line) = g.v_line {
-                                                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
-                                            }
-                                            let mut points = vec![vec![], vec![], vec![]];
-                                            let mut up_points = vec![vec![], vec![], vec![]];
-                                            let mut down_points = vec![vec![], vec![], vec![]];
-
-                                            for (x, (y, e)) in &g.data {
-
-                                                for i in 0..3 {
-                                                    points[i].push(egui_plot::PlotPoint::new(*x, y[i]));
-                                                    up_points[i].push(egui_plot::PlotPoint::new(*x, y[i] + e[i]));
-                                                    down_points[i].push(egui_plot::PlotPoint::new(*x, y[i] - e[i]));
-                                                }
-                                            }
-
-                                            let mut plot_points = |points:Vec<Vec<egui_plot::PlotPoint>>, color:[Color;3]|{
-                                                for (i, p) in points.iter().enumerate().take(3) {
-                                                        let plot_points =
-                                                            egui_plot::PlotPoints::Owned(p.clone());
-                                                        plot_ui.line(
-                                                            egui_plot::Line::new(plot_points)
-                                                            .color(color_cnv(color[i]))
-                                                            .name(format!("{}-{}", curve_name, i)),
-                                                        );
-                                                    }
-
-                                            };
-
-                                            plot_points(points, g.style.color);
-                                            plot_points(up_points, g.style.conf_color);
-                                            plot_points(down_points, g.style.conf_color);
-
-                                        }
-                                        GraphType::Vec2(g) => {
-                                            if let Some(v_line) = g.v_line {
-                                                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
-                                            }
-                                            let mut points = [vec![], vec![]];
-
-                                            for (x, y) in &g.data {
-
-                                                for i in 0..2 {
-                                                    points[i].push(egui_plot::PlotPoint::new(*x, y[i]));
-                                                }
-
-                                            }
-
-                                            match g.style.line_type {
-                                                LineType::LineStrip => {
-                                                    for (i, p) in points.iter().enumerate().take(3) {
-
-                                                            let plot_points =
-                                                                egui_plot::PlotPoints::Owned(p.clone());
-                                                            plot_ui.line(
-                                                                egui_plot::Line::new(plot_points)
-                                                                .color(color_cnv(g.style.color[i]))
-                                                                .name(format!("{}-{}", curve_name, i)),
-                                                            );
-
-                                                    }
-                                                }
-                                                LineType::Points => {
-                                                    for (i, p) in points.iter().enumerate().take(3) {
-                                                            let plot_points =
-                                                                egui_plot::PlotPoints::Owned(p.clone());
-                                                            plot_ui.line(
-                                                                egui_plot::Line::new(plot_points)
-                                                                .color(color_cnv(g.style.color[i]))
-                                                                .name(format!("{}-{}", curve_name, i)),
-                                                            );
-
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        GraphType::Vec2Conf(g) => {
-                                            if let Some(v_line) = g.v_line {
-                                                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
-                                            }
-                                            let mut points = vec![vec![], vec![], vec![]];
-                                            let mut up_points = vec![vec![], vec![], vec![]];
-                                            let mut down_points = vec![vec![], vec![], vec![]];
-
-                                            for (x, (y, e)) in &g.data {
-
-                                                for i in 0..3 {
-                                                    points[i].push(egui_plot::PlotPoint::new(*x, y[i]));
-                                                    up_points[i].push(egui_plot::PlotPoint::new(*x, y[i] + e[i]));
-                                                    down_points[i].push(egui_plot::PlotPoint::new(*x, y[i] - e[i]));
-                                                }
-                                            }
-
-                                            let mut plot_points = |points:Vec<Vec<egui_plot::PlotPoint>>, color:[Color;2]|{
-                                                for (i, p) in points.iter().enumerate().take(3) {
-                                                        let plot_points =
-                                                            egui_plot::PlotPoints::Owned(p.clone());
-                                                        plot_ui.line(
-                                                            egui_plot::Line::new(plot_points)
-                                                            .color(color_cnv(color[i]))
-                                                            .name(format!("{}-{}", curve_name, i)),
-                                                        );
-                                                    }
-
-                                            };
-
-                                            plot_points(points, g.style.color);
-                                            plot_points(up_points, g.style.conf_color);
-                                            plot_points(down_points, g.style.conf_color);
-                                        }
-                                    }
-                                }
-                            }).response
-                        }
-
-                        );
-
-
-
+                            Self::show_plot(ui, view, adjusted_size, view_label.clone());
                         }
                     }
                 }
             });
         });
+    }
+
+    fn show_plot(ui: &mut Ui, view: &mut PlotView, adjusted_size: ViewportSize, plot_name: String) {
+        let plot = egui_plot::Plot::new(plot_name)
+            .legend(egui_plot::Legend::default().position(egui_plot::Corner::LeftTop))
+            .height(adjusted_size.height)
+            .width(adjusted_size.width);
+
+        fn color_cnv(color: dog_tv_renderer::renderables::color::Color) -> egui::Color32 {
+            egui::Color32::from_rgb(
+                (color.r * 255.0).clamp(0.0, 255.0) as u8,
+                (color.g * 255.0).clamp(0.0, 255.0) as u8,
+                (color.b * 255.0).clamp(0.0, 255.0) as u8,
+            )
+        }
+        fn show_vec<const N: usize>(curve_name: &str, g: &VecCurve<N>, plot_ui: &mut PlotUi) {
+            if let Some(v_line) = g.v_line {
+                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
+            }
+            let mut points = vec![];
+            for _ in 0..N {
+                points.push(Vec::new());
+            }
+
+            for (x, y) in &g.data {
+                for i in 0..N {
+                    points[i].push(egui_plot::PlotPoint::new(*x, y[i]));
+                }
+            }
+
+            match g.style.line_type {
+                LineType::LineStrip => {
+                    for (i, p) in points.iter().enumerate().take(N) {
+                        let plot_points = egui_plot::PlotPoints::Owned(p.clone());
+                        plot_ui.line(
+                            egui_plot::Line::new(plot_points)
+                                .color(color_cnv(g.style.color[i]))
+                                .name(format!("{}-{}", curve_name, i)),
+                        );
+                    }
+                }
+                LineType::Points => {
+                    for (i, p) in points.iter().enumerate().take(N) {
+                        let plot_points = egui_plot::PlotPoints::Owned(p.clone());
+                        plot_ui.line(
+                            egui_plot::Line::new(plot_points)
+                                .color(color_cnv(g.style.color[i]))
+                                .name(format!("{}-{}", curve_name, i)),
+                        );
+                    }
+                }
+            }
+        }
+        fn show_vec_conf<const N: usize>(
+            curve_name: &str,
+            g: &VecConfCurve<N>,
+            plot_ui: &mut PlotUi,
+        ) {
+            if let Some(v_line) = g.v_line {
+                plot_ui.add(VLine::new(v_line).color(egui::Color32::from_rgb(255, 255, 255)));
+            }
+            let mut points = vec![];
+            let mut up_points = vec![];
+            let mut down_points = vec![];
+            for _ in 0..N {
+                points.push(Vec::new());
+                up_points.push(Vec::new());
+                down_points.push(Vec::new());
+            }
+
+            for (x, (y, e)) in &g.data {
+                for i in 0..N {
+                    points[i].push(egui_plot::PlotPoint::new(*x, y[i]));
+                    up_points[i].push(egui_plot::PlotPoint::new(*x, y[i] + e[i]));
+                    down_points[i].push(egui_plot::PlotPoint::new(*x, y[i] - e[i]));
+                }
+            }
+
+            let mut plot_points =
+                |points: Vec<Vec<egui_plot::PlotPoint>>, color: [Color; N], style: LineStyle| {
+                    for (i, p) in points.iter().enumerate().take(N) {
+                        let plot_points = egui_plot::PlotPoints::Owned(p.clone());
+                        plot_ui.line(
+                            egui_plot::Line::new(plot_points)
+                                .color(color_cnv(color[i]))
+                                .name(format!("{}-{}", curve_name, i))
+                                .style(style),
+                        );
+                    }
+                };
+
+            plot_points(points, g.style.color, LineStyle::Solid);
+            plot_points(up_points, g.style.color, LineStyle::dashed_dense());
+            plot_points(down_points, g.style.color, LineStyle::dashed_dense());
+        }
+
+        ui.add_sized(
+            [adjusted_size.width, adjusted_size.height],
+            |ui: &mut egui::Ui| {
+                plot.show(ui, |plot_ui| {
+                    for (curve_name, graph_data) in &mut view.curves {
+                        if !graph_data.show_graph {
+                            continue;
+                        }
+
+                        match &graph_data.curve {
+                            GraphType::Scalar(g) => {
+                                if let Some(v_line) = g.v_line {
+                                    plot_ui.add(
+                                        VLine::new(v_line)
+                                            .color(egui::Color32::from_rgb(255, 255, 255)),
+                                    );
+                                }
+                                let mut points = vec![];
+
+                                for (x, y) in &g.data {
+                                    points.push(egui_plot::PlotPoint::new(*x, *y));
+                                }
+
+                                let plot_points = egui_plot::PlotPoints::Owned(points);
+
+                                match g.style.line_type {
+                                    LineType::LineStrip => {
+                                        plot_ui.line(
+                                            egui_plot::Line::new(plot_points)
+                                                .color(color_cnv(g.style.color))
+                                                .name(curve_name),
+                                        );
+                                    }
+                                    LineType::Points => {
+                                        plot_ui.points(
+                                            egui_plot::Points::new(plot_points)
+                                                .color(color_cnv(g.style.color))
+                                                .name(curve_name),
+                                        );
+                                    }
+                                }
+                            }
+                            GraphType::Vec2(g) => {
+                                show_vec(curve_name, g, plot_ui);
+                            }
+                            GraphType::Vec3(g) => {
+                                show_vec(curve_name, g, plot_ui);
+                            }
+                            GraphType::Vec2Conf(g) => {
+                                show_vec_conf(curve_name, g, plot_ui);
+                            }
+                            GraphType::Vec3Conf(g) => {
+                                show_vec_conf(curve_name, g, plot_ui);
+                            }
+                        }
+                    }
+                })
+                .response
+            },
+        );
     }
 
     pub(crate) fn add_renderables_to_tables(&mut self) {

@@ -25,8 +25,6 @@ pub struct VecConfCurve<const N: usize> {
 pub struct VecConfCurveStyle<const N: usize> {
     /// color
     pub color: [Color; N],
-    /// confidence interval color
-    pub conf_color: [Color; N],
 }
 
 /// vec conf curve data
@@ -37,13 +35,12 @@ impl<const N: usize> VecConfCurve<N> {
     pub fn new(
         data: DataVecDeque<N>,
         color: [Color; N],
-        conf_color: [Color; N],
         clear_cond: ClearCondition,
         v_line: Option<f64>,
     ) -> Self {
         VecConfCurve {
             data,
-            style: VecConfCurveStyle { color, conf_color },
+            style: VecConfCurveStyle { color },
             clear_cond,
             v_line,
         }
