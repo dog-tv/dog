@@ -1,17 +1,17 @@
 #![cfg(feature = "std")]
 
-use dog_tv_renderer::camera::properties::RenderCameraProperties;
-use dog_tv_renderer::renderables::color::Color;
-use dog_tv_renderer::renderables::scene_renderable::make_line3;
-use dog_tv_renderer::renderables::scene_renderable::make_mesh3_at;
-use dog_tv_renderer::renderables::scene_renderable::make_point3;
-use dog_tv_renderer::RenderContext;
-use dog_tv_sim::camera_simulator::CameraSimulator;
-use sophus::image::io::png::save_as_png;
-use sophus::image::io::tiff::save_as_tiff;
-use sophus::image::ImageSize;
-use sophus::lie::Isometry3;
-use sophus::prelude::IsImageView;
+use dog_tv::renderer::camera::properties::RenderCameraProperties;
+use dog_tv::renderer::renderables::color::Color;
+use dog_tv::renderer::renderables::scene_renderable::make_line3;
+use dog_tv::renderer::renderables::scene_renderable::make_mesh3_at;
+use dog_tv::renderer::renderables::scene_renderable::make_point3;
+use dog_tv::renderer::RenderContext;
+use dog_tv::sim::camera_simulator::CameraSimulator;
+use dog_tv::sophus::image::io::png::save_as_png;
+use dog_tv::sophus::image::io::tiff::save_as_tiff;
+use dog_tv::sophus::image::ImageSize;
+use dog_tv::sophus::lie::Isometry3;
+use dog_tv::sophus::prelude::IsImageView;
 
 pub async fn run_offscreen() {
     let render_state = RenderContext::new().await;

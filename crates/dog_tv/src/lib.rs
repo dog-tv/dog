@@ -14,3 +14,4 @@ pub use eframe;
 pub use sophus;
 pub use sophus::nalgebra;
 pub use sophus::ndarray;
+pub use thingbuf;
