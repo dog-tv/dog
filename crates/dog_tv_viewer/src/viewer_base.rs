@@ -1,4 +1,8 @@
 use crate::interactions::ViewportScale;
+use crate::packets::plot_view_packet::curve_vec_with_conf::CurveVecWithConf;
+use crate::packets::plot_view_packet::vec_curve::CurveVec;
+use crate::packets::plot_view_packet::LineType;
+use crate::packets::Packet;
 use crate::views::active_view_info::ActiveViewInfo;
 use crate::views::get_adjusted_view_size;
 use crate::views::get_max_size;
@@ -15,11 +19,6 @@ use alloc::vec;
 use alloc::vec::Vec;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::renderables::color::Color;
-use dog_tv_renderer::renderables::plot::curve_vec_with_conf::CurveVecWithConf;
-use dog_tv_renderer::renderables::plot::vec_curve::CurveVec;
-use dog_tv_renderer::renderables::plot::LineType;
-use dog_tv_renderer::renderables::Packet;
-use dog_tv_renderer::renderables::Packets;
 use dog_tv_renderer::RenderContext;
 use eframe::egui;
 use eframe::egui::Ui;
@@ -39,7 +38,7 @@ extern crate alloc;
 pub struct ViewerBase {
     state: RenderContext,
     views: LinkedHashMap<String, View>,
-    message_recv: Receiver<Packets>,
+    message_recv: Receiver<Vec<Packet>>,
     show_depth: bool,
     backface_culling: bool,
     responses: BTreeMap<String, ResponseStruct>,
@@ -54,13 +53,19 @@ pub(crate) struct ResponseStruct {
     pub(crate) view_port_size: ImageSize,
 }
 
+/// Configuration for a simple viewer.
+pub struct ViewerBaseConfig {
+    /// Message receiver.
+    pub message_recv: Receiver<Vec<Packet>>,
+}
+
 impl ViewerBase {
     /// Create a new viewer.
-    pub fn new(render_state: RenderContext, message_recv: Receiver<Packets>) -> ViewerBase {
+    pub fn new(render_state: RenderContext, config: ViewerBaseConfig) -> ViewerBase {
         ViewerBase {
             state: render_state.clone(),
             views: LinkedHashMap::new(),
-            message_recv,
+            message_recv: config.message_recv,
             show_depth: false,
             backface_culling: false,
             responses: BTreeMap::new(),
@@ -71,7 +76,7 @@ impl ViewerBase {
 
     /// Update the data.
     pub fn update_data(&mut self) {
-        self.add_renderables_to_tables();
+        Self::process_simple_packets(&mut self.views, &self.state, &self.message_recv);
     }
 
     /// Process events.
@@ -540,24 +545,24 @@ impl ViewerBase {
         );
     }
 
-    pub(crate) fn add_renderables_to_tables(&mut self) {
+    pub(crate) fn process_simple_packets(
+        views: &mut LinkedHashMap<String, View>,
+        state: &RenderContext,
+        message_recv: &Receiver<Vec<Packet>>,
+    ) {
         loop {
-            let maybe_stream = self.message_recv.try_recv();
+            let maybe_stream = message_recv.try_recv();
             if maybe_stream.is_err() {
                 break;
             }
             let stream = maybe_stream.unwrap();
-            for packet in stream.packets {
+            for packet in stream {
                 match packet {
-                    Packet::Scene(packet) => {
-                        SceneView::update(&mut self.views, packet, &self.state)
-                    }
-                    Packet::Image(packet) => {
-                        ImageView::update(&mut self.views, packet, &self.state)
-                    }
+                    Packet::Scene(packet) => SceneView::update(views, packet, state),
+                    Packet::Image(packet) => ImageView::update(views, packet, state),
                     Packet::Plot(packets) => {
                         for packet in packets {
-                            PlotView::update(&mut self.views, packet)
+                            PlotView::update(views, packet)
                         }
                     }
                 }

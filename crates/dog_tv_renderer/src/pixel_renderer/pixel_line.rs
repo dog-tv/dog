@@ -1,17 +1,9 @@
 use crate::pipeline_builder::LineVertex2;
 use crate::pipeline_builder::PipelineBuilder;
+use crate::preludes::*;
 use crate::renderables::pixel_renderable::LineSegments2;
 use crate::RenderContext;
-use alloc::collections::BTreeMap;
-use alloc::format;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
 use wgpu::util::DeviceExt;
-
-extern crate alloc;
-
 pub(crate) struct Line2dEntity {
     pub(crate) vertex_data: Vec<LineVertex2>,
     pub(crate) vertex_buffer: wgpu::Buffer,

@@ -28,3 +28,16 @@ pub mod types;
 pub mod uniform_buffers;
 
 pub use crate::render_context::RenderContext;
+
+/// preludes
+pub mod preludes {
+    pub(crate) use alloc::collections::btree_map::BTreeMap;
+    pub(crate) use alloc::format;
+    pub(crate) use alloc::string::String;
+    pub(crate) use alloc::string::ToString;
+    pub(crate) use alloc::sync::Arc;
+    pub(crate) use alloc::vec;
+    pub(crate) use alloc::vec::Vec;
+
+    extern crate alloc;
+}

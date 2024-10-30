@@ -1,15 +1,11 @@
+use crate::preludes::*;
 use crate::textures::depth::DepthTextures;
 use crate::textures::rgba::RgbdTexture;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use alloc::format;
-use alloc::sync::Arc;
-use alloc::vec;
 use sophus::image::ImageSize;
 use wgpu::BindGroup;
 use wgpu::BindGroupLayout;
-
-extern crate alloc;
 
 /// Scene line renderer
 pub struct DistortionRenderer {

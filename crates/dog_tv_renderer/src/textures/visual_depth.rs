@@ -1,7 +1,6 @@
+use crate::RenderContext;
 use eframe::egui;
 use sophus::image::ImageSize;
-
-use crate::RenderContext;
 
 #[derive(Debug)]
 pub(crate) struct VisualDepthTexture {

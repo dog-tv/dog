@@ -1,24 +1,28 @@
 #![cfg(feature = "std")]
 
-use crate::frame::Frame;
-use crate::pixel_renderable::make_line2;
-use crate::plot::scalar_curve::ScalarCurveStyle;
-use crate::plot::ClearCondition;
-use crate::plot::LineType;
-use crate::scene_renderable::make_line3;
-use crate::scene_renderable::make_mesh3_at;
 use core::f64::consts::TAU;
 use dog_tv::examples::viewer_example::make_distorted_frame;
 use dog_tv_renderer::camera::clipping_planes::ClippingPlanes;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::camera::RenderCamera;
 use dog_tv_renderer::renderables::color::Color;
+use dog_tv_renderer::renderables::frame::ImageFrame;
+use dog_tv_renderer::renderables::pixel_renderable::make_line2;
 use dog_tv_renderer::renderables::pixel_renderable::make_point2;
-use dog_tv_renderer::renderables::plot::curve_vec_with_conf::CurveVecWithConfStyle;
-use dog_tv_renderer::renderables::plot::vec_curve::CurveVecStyle;
+use dog_tv_renderer::renderables::scene_renderable::make_line3;
+use dog_tv_renderer::renderables::scene_renderable::make_mesh3_at;
 use dog_tv_renderer::renderables::scene_renderable::make_point3;
-use dog_tv_renderer::renderables::*;
 use dog_tv_renderer::RenderContext;
+use dog_tv_viewer::packets::append_to_scene_packet;
+use dog_tv_viewer::packets::create_scene_packet;
+use dog_tv_viewer::packets::image_view_packet::ImageViewPacket;
+use dog_tv_viewer::packets::plot_view_packet::curve_vec_with_conf::CurveVecWithConfStyle;
+use dog_tv_viewer::packets::plot_view_packet::scalar_curve::ScalarCurveStyle;
+use dog_tv_viewer::packets::plot_view_packet::vec_curve::CurveVecStyle;
+use dog_tv_viewer::packets::plot_view_packet::ClearCondition;
+use dog_tv_viewer::packets::plot_view_packet::LineType;
+use dog_tv_viewer::packets::plot_view_packet::PlotViewPacket;
+use dog_tv_viewer::packets::Packet;
 use dog_tv_viewer::simple_viewer::SimpleViewer;
 use sophus::core::linalg::VecF64;
 use sophus::image::intensity_image::intensity_arc_image::IsIntensityArcImage;
@@ -82,7 +86,7 @@ fn create_tiny_image_view_packet() -> Packet {
         view_label: "tiny image".to_string(),
         scene_renderables: vec![],
         pixel_renderables: vec![],
-        frame: Some(Frame::from_image(&img.to_shared().to_rgba())),
+        frame: Some(ImageFrame::from_image(&img.to_shared().to_rgba())),
     };
 
     image_packet.pixel_renderables.push(make_line2(
@@ -95,7 +99,7 @@ fn create_tiny_image_view_packet() -> Packet {
     Packet::Image(image_packet)
 }
 
-fn create_scene_packet(pinhole: bool) -> Packet {
+fn create_scene(pinhole: bool) -> Vec<Packet> {
     let unified_cam = DynCameraF64::new_unified(
         &VecF64::from_array([500.0, 500.0, 320.0, 240.0, 0.629, 1.02]),
         ImageSize::new(639, 479),
@@ -116,24 +120,11 @@ fn create_scene_packet(pinhole: bool) -> Packet {
         scene_from_camera: Isometry3::trans_z(-5.0),
     };
 
-    let mut scene_packet = SceneViewPacket {
-        view_label: match pinhole {
-            false => "scene - distorted".to_string(),
-            true => "scene - bird's eye".to_string(),
-        },
-        scene_renderables: vec![],
-        initial_camera: initial_camera.clone(),
-        locked_to_birds_eye_orientation: pinhole,
-        world_from_scene_update: None,
-    };
-
+    let mut scene_renderables = vec![];
     let trig_points = [[0.0, 0.0, -0.1], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]];
+    scene_renderables.push(make_point3("points3", &trig_points, &Color::red(), 5.0));
 
-    scene_packet
-        .scene_renderables
-        .push(make_point3("points3", &trig_points, &Color::red(), 5.0));
-
-    scene_packet.scene_renderables.push(make_line3(
+    scene_renderables.push(make_line3(
         "lines3",
         &[
             [[0.0, 0.1, 0.0], [0.1, 0.2, 0.0]],
@@ -152,24 +143,33 @@ fn create_scene_packet(pinhole: bool) -> Packet {
     ));
 
     let blue = Color::blue();
-    scene_packet.scene_renderables.push(make_mesh3_at(
+    scene_renderables.push(make_mesh3_at(
         "mesh",
         &[(trig_points, blue)],
         Isometry3::trans_z(3.0),
     ));
 
-    Packet::Scene(scene_packet)
+    let label = match pinhole {
+        false => "scene - distorted",
+        true => "scene - bird's eye",
+    };
+    let packets = vec![
+        create_scene_packet(label, initial_camera, pinhole),
+        append_to_scene_packet(label, scene_renderables),
+    ];
+
+    packets
 }
 
 pub fn run_viewer_example() {
     let (message_tx, message_rx) = channel(50);
 
     spawn(move || {
-        let mut packets = Packets { packets: vec![] };
-        packets.packets.push(create_scene_packet(true));
-        packets.packets.push(create_scene_packet(false));
-        packets.packets.push(create_distorted_image_packet());
-        packets.packets.push(create_tiny_image_view_packet());
+        let mut packets = vec![];
+        packets.append(&mut create_scene(true));
+        packets.append(&mut create_scene(false));
+        packets.push(create_distorted_image_packet());
+        packets.push(create_tiny_image_view_packet());
         message_tx.send(packets).unwrap();
 
         let mut x: f64 = 0.0;
@@ -213,8 +213,7 @@ pub fn run_viewer_example() {
                 ),
             ];
 
-            let mut packets = Packets { packets: vec![] };
-            packets.packets.push(Packet::Plot(plot_packets));
+            let packets = vec![Packet::Plot(plot_packets)];
             message_tx.send(packets).unwrap();
 
             x += 0.01;

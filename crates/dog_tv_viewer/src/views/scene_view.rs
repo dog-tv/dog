@@ -1,15 +1,16 @@
 use crate::interactions::orbit_interaction::OrbitalInteraction;
 use crate::interactions::InteractionEnum;
+use crate::packets::scene_view_packet::SceneViewCreation;
+use crate::packets::scene_view_packet::SceneViewPacket;
+use crate::packets::scene_view_packet::SceneViewPacketContent;
+use crate::preludes::*;
 use crate::views::View;
-use alloc::string::String;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
 use dog_tv_renderer::camera::intrinsics::RenderIntrinsics;
 use dog_tv_renderer::offscreen_renderer::OffscreenRenderer;
-use dog_tv_renderer::renderables::SceneViewPacket;
 use dog_tv_renderer::RenderContext;
 use linked_hash_map::LinkedHashMap;
-
-extern crate alloc;
+use log::warn;
 
 pub(crate) struct SceneView {
     pub(crate) renderer: OffscreenRenderer,
@@ -19,26 +20,25 @@ pub(crate) struct SceneView {
 }
 
 impl SceneView {
-    fn create_if_new(
+    fn create(
         views: &mut LinkedHashMap<String, View>,
-        packet: &SceneViewPacket,
+        view_label: &str,
+        creation: &SceneViewCreation,
         state: &RenderContext,
     ) {
-        if !views.contains_key(&packet.view_label) {
-            views.insert(
-                packet.view_label.clone(),
-                View::Scene(SceneView {
-                    renderer: OffscreenRenderer::new(state, &packet.initial_camera.properties),
-                    interaction: InteractionEnum::Orbital(OrbitalInteraction::new(
-                        &packet.view_label,
-                        packet.initial_camera.scene_from_camera,
-                        packet.initial_camera.properties.clipping_planes,
-                    )),
-                    enabled: true,
-                    locked_to_birds_eye_orientation: packet.locked_to_birds_eye_orientation,
-                }),
-            );
-        }
+        views.insert(
+            view_label.to_string(),
+            View::Scene(SceneView {
+                renderer: OffscreenRenderer::new(state, &creation.initial_camera.properties),
+                interaction: InteractionEnum::Orbital(OrbitalInteraction::new(
+                    view_label,
+                    creation.initial_camera.scene_from_camera,
+                    creation.initial_camera.properties.clipping_planes,
+                )),
+                enabled: true,
+                locked_to_birds_eye_orientation: creation.locked_to_birds_eye_orientation,
+            }),
+        );
     }
 
     pub fn update(
@@ -46,17 +46,33 @@ impl SceneView {
         packet: SceneViewPacket,
         state: &RenderContext,
     ) {
-        Self::create_if_new(views, &packet, state);
-
-        let view = views.get_mut(&packet.view_label).unwrap();
-        let scene_view = match view {
-            View::Scene(view) => view,
-            _ => panic!("View type mismatch"),
-        };
-        if let Some(world_from_scene_update) = packet.world_from_scene_update {
-            scene_view.renderer.scene.world_from_scene = world_from_scene_update;
+        match &packet.content {
+            SceneViewPacketContent::Creation(creation) => {
+                Self::create(views, &packet.view_label, creation, state);
+            }
+            SceneViewPacketContent::Renderables(r) => {
+                if let Some(view) = views.get_mut(&packet.view_label) {
+                    if let View::Scene(scene_view) = view {
+                        scene_view.renderer.update_scene(r.clone());
+                    } else {
+                        warn!("Is not a scene-view: {}", packet.view_label);
+                    }
+                } else {
+                    warn!("View not found: {}", packet.view_label);
+                }
+            }
+            SceneViewPacketContent::WorldFromSceneUpdate(world_from_scene) => {
+                if let Some(view) = views.get_mut(&packet.view_label) {
+                    if let View::Scene(scene_view) = view {
+                        scene_view.renderer.scene.world_from_scene = *world_from_scene
+                    } else {
+                        warn!("Is not a scene-view: {}", packet.view_label);
+                    }
+                } else {
+                    warn!("View not found: {}", packet.view_label);
+                }
+            }
         }
-        scene_view.renderer.update_scene(packet.scene_renderables);
     }
 
     pub fn intrinsics(&self) -> RenderIntrinsics {

@@ -1,18 +1,15 @@
 // ported from https://github.com/farm-ng/farm-ng-core/blob/main/rs/plotting/src/plotter_gui/mod.rs
 
 use crate::interactions::InteractionEnum;
+use crate::packets::plot_view_packet::curve_vec_with_conf::CurveVecWithConf;
+use crate::packets::plot_view_packet::scalar_curve::ScalarCurve;
+use crate::packets::plot_view_packet::vec_curve::CurveVec;
+use crate::packets::plot_view_packet::CurveTrait;
+use crate::packets::plot_view_packet::PlotViewPacket;
+use crate::preludes::*;
 use crate::views::View;
-use alloc::collections::btree_map::BTreeMap;
-use alloc::string::String;
 use dog_tv_renderer::aspect_ratio::HasAspectRatio;
-use dog_tv_renderer::renderables::plot::curve_vec_with_conf::CurveVecWithConf;
-use dog_tv_renderer::renderables::plot::scalar_curve::ScalarCurve;
-use dog_tv_renderer::renderables::plot::vec_curve::CurveVec;
-use dog_tv_renderer::renderables::plot::CurveTrait;
-use dog_tv_renderer::renderables::PlotViewPacket;
 use linked_hash_map::LinkedHashMap;
-
-extern crate alloc;
 
 pub(crate) struct PlotView {
     pub(crate) enabled: bool,

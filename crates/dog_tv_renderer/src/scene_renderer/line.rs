@@ -1,18 +1,12 @@
 use crate::pipeline_builder::LineVertex3;
 use crate::pipeline_builder::PipelineBuilder;
+use crate::preludes::*;
 use crate::renderables::scene_renderable::LineSegments3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use alloc::collections::BTreeMap;
-use alloc::format;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
 use sophus::lie::Isometry3F64;
 use wgpu::util::DeviceExt;
 
-extern crate alloc;
 pub(crate) struct Line3dEntity {
     pub(crate) vertex_data: Vec<LineVertex3>,
     pub(crate) vertex_buffer: wgpu::Buffer,

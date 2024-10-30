@@ -1,17 +1,10 @@
 use crate::pipeline_builder::PipelineBuilder;
 use crate::pipeline_builder::PointVertex2;
+use crate::preludes::*;
 use crate::renderables::pixel_renderable::PointCloud2;
 use crate::RenderContext;
-use alloc::collections::BTreeMap;
-use alloc::format;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
 use eframe::egui::mutex::Mutex;
 use wgpu::util::DeviceExt;
-
-extern crate alloc;
 
 pub(crate) struct Point2dEntity {
     pub(crate) vertex_data: Vec<PointVertex2>,
