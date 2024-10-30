@@ -1,10 +1,10 @@
+use crate::packets::Packet;
+use crate::preludes::*;
 use crate::viewer_base::ViewerBase;
-use dog_tv_renderer::renderables::Packets;
+use crate::viewer_base::ViewerBaseConfig;
 use dog_tv_renderer::RenderContext;
 use eframe::egui;
 use thingbuf::mpsc::blocking::Receiver;
-
-extern crate alloc;
 
 /// Simple viewer
 pub struct SimpleViewer {
@@ -15,10 +15,10 @@ impl SimpleViewer {
     /// Create a new simple viewer
     pub fn new(
         render_state: RenderContext,
-        message_recv: Receiver<Packets>,
-    ) -> alloc::boxed::Box<SimpleViewer> {
-        alloc::boxed::Box::new(SimpleViewer {
-            base: ViewerBase::new(render_state, message_recv),
+        message_recv: Receiver<Vec<Packet>>,
+    ) -> Box<SimpleViewer> {
+        Box::new(SimpleViewer {
+            base: ViewerBase::new(render_state, ViewerBaseConfig { message_recv }),
         })
     }
 }

@@ -20,6 +20,7 @@ egui_extras.workspace = true
 egui_plot.workspace = true
 env_logger.workspace = true
 linked-hash-map.workspace = true
+log.workspace = true
 num-traits.workspace = true
 thingbuf.workspace = true
 sophus.workspace = true

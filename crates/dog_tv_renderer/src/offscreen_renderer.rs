@@ -3,6 +3,7 @@ use crate::camera::properties::RenderCameraProperties;
 use crate::pixel_renderer::pixel_line::Line2dEntity;
 use crate::pixel_renderer::pixel_point::Point2dEntity;
 use crate::pixel_renderer::PixelRenderer;
+use crate::preludes::*;
 use crate::renderables::pixel_renderable::PixelRenderable;
 use crate::renderables::scene_renderable::SceneRenderable;
 use crate::scene_renderer::distortion::DistortionRenderer;
@@ -16,15 +17,11 @@ use crate::types::SceneFocusMarker;
 use crate::types::TranslationAndScaling;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use alloc::sync::Arc;
-use alloc::vec::Vec;
 use sophus::core::IsTensorLike;
 use sophus::image::arc_image::ArcImage4U8;
 use sophus::image::image_view::IsImageView;
 use sophus::image::ImageSize;
 use sophus::lie::Isometry3F64;
-
-extern crate alloc;
 
 /// Offscreen renderer
 pub struct OffscreenRenderer {

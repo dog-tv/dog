@@ -1,5 +1,5 @@
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
-use dog_tv_renderer::renderables::frame::Frame;
+use dog_tv_renderer::renderables::frame::ImageFrame;
 use sophus::core::linalg::SVec;
 use sophus::core::linalg::VecF64;
 use sophus::core::prelude::IsVector;
@@ -29,7 +29,7 @@ pub fn make_example_image(image_size: ImageSize) -> ArcImage4U8 {
     img.to_shared()
 }
 
-pub fn make_distorted_frame() -> Frame {
+pub fn make_distorted_frame() -> ImageFrame {
     let focal_length = 500.0;
 
     let image_size = ImageSize::new(638, 479);
@@ -59,7 +59,7 @@ pub fn make_distorted_frame() -> Frame {
         }
     }
 
-    Frame {
+    ImageFrame {
         image: Some(img.to_shared()),
         camera_properties: RenderCameraProperties::from_intrinsics(&unified_cam),
     }

@@ -1,14 +1,12 @@
 use crate::camera::properties::RenderCameraProperties;
+use crate::preludes::*;
 use crate::types::TranslationAndScaling;
 use crate::types::Zoom2dPod;
 use crate::RenderContext;
-use alloc::format;
 use sophus::image::ImageSize;
 use sophus::lie::Isometry3F64;
 use wgpu::util::DeviceExt;
 use wgpu::ShaderStages;
-
-extern crate alloc;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]

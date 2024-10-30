@@ -1,18 +1,11 @@
 use crate::pipeline_builder::PipelineBuilder;
 use crate::pipeline_builder::PointVertex3;
+use crate::preludes::*;
 use crate::renderables::scene_renderable::PointCloud3;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use alloc::collections::BTreeMap;
-use alloc::format;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
 use sophus::lie::Isometry3F64;
 use wgpu::util::DeviceExt;
-
-extern crate alloc;
 pub(crate) struct Point3dEntity {
     pub(crate) vertex_data: Vec<PointVertex3>,
     pub(crate) vertex_buffer: wgpu::Buffer,

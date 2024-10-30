@@ -1,14 +1,9 @@
+use crate::preludes::*;
 use crate::renderables::color::Color;
 use crate::renderables::pixel_renderable::HasToVec2F32;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
 use sophus::core::linalg::SVec;
 use sophus::lie::Isometry3;
 use sophus::lie::Isometry3F64;
-
-extern crate alloc;
 
 /// axes
 pub mod axes;

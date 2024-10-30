@@ -11,17 +11,15 @@ pub mod textured_mesh;
 
 use crate::pipeline_builder::PipelineBuilder;
 use crate::pipeline_builder::TargetTexture;
+use crate::preludes::*;
 use crate::scene_renderer::mesh::MeshRenderer;
 use crate::scene_renderer::point::ScenePointRenderer;
 use crate::textures::depth::DepthTextures;
 use crate::textures::rgba::RgbdTexture;
 use crate::uniform_buffers::VertexShaderUniformBuffers;
 use crate::RenderContext;
-use alloc::sync::Arc;
 use sophus::lie::Isometry3F64;
 use wgpu::DepthStencilState;
-
-extern crate alloc;
 
 /// Scene renderer
 pub struct SceneRenderer {

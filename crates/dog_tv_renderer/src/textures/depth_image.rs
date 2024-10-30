@@ -9,8 +9,6 @@ use sophus::image::mut_image::MutImageF32;
 use sophus::image::prelude::IsImageView;
 use sophus::image::prelude::IsMutImageView;
 
-extern crate alloc;
-
 /// depth image
 pub struct DepthImage {
     /// ndc depth values

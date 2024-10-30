@@ -1,10 +1,8 @@
-use alloc::string::String;
+use crate::preludes::*;
 use dog_tv_renderer::camera::properties::RenderCameraProperties;
 use dog_tv_renderer::types::SceneFocusMarker;
 use sophus::image::ImageSize;
 use sophus::lie::Isometry3F64;
-
-extern crate alloc;
 
 /// active view info
 pub struct ActiveViewInfo {

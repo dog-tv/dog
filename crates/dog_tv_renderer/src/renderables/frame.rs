@@ -13,28 +13,28 @@ use crate::camera::properties::RenderCameraProperties;
 ///   - The image, if available, must have the same size as the intrinsics.
 ///   - The image size must be non-zero.
 #[derive(Clone, Debug)]
-pub struct Frame {
+pub struct ImageFrame {
     /// Image, if available must have the same size as the intrinsics
     pub image: Option<ArcImage4U8>,
     /// Intrinsics
     pub camera_properties: RenderCameraProperties,
 }
 
-impl Frame {
+impl ImageFrame {
     /// Try to create a new frame from an image and camera properties d
     ///
     /// Returns None if the image size is zero or the image size does not match the intrinsics.
     pub fn try_from(
         image: &ArcImage4U8,
         camera_properties: &RenderCameraProperties,
-    ) -> Option<Frame> {
+    ) -> Option<ImageFrame> {
         if camera_properties.intrinsics.image_size().area() == 0 {
             return None;
         }
         if image.image_size() != camera_properties.intrinsics.image_size() {
             return None;
         }
-        Some(Frame {
+        Some(ImageFrame {
             image: Some(image.clone()),
             camera_properties: camera_properties.clone(),
         })
@@ -43,12 +43,12 @@ impl Frame {
     /// Create a new frame from an image
     ///
     /// Precondition: The image size must be non-zero.
-    pub fn from_image(image: &ArcImage4U8) -> Frame {
+    pub fn from_image(image: &ArcImage4U8) -> ImageFrame {
         assert!(image.image_size().area() > 0);
 
         let camera_properties = RenderCameraProperties::default_from(image.image_size());
 
-        Frame {
+        ImageFrame {
             image: Some(image.clone()),
             camera_properties,
         }
@@ -57,9 +57,9 @@ impl Frame {
     /// Create a new frame from intrinsics
     ///
     /// Precondition: The image size must be non-zero.
-    pub fn from_intrinsics(intrinsics: &DynCamera<f64, 1>) -> Frame {
+    pub fn from_intrinsics(intrinsics: &DynCamera<f64, 1>) -> ImageFrame {
         assert!(intrinsics.image_size().area() > 0);
-        Frame {
+        ImageFrame {
             image: None,
             camera_properties: RenderCameraProperties {
                 intrinsics: RenderIntrinsics::new(intrinsics),
@@ -69,8 +69,8 @@ impl Frame {
     }
 
     /// Create a new frame from camera properties
-    pub fn from_camera_properties(camera_properties: &RenderCameraProperties) -> Frame {
-        Frame {
+    pub fn from_camera_properties(camera_properties: &RenderCameraProperties) -> ImageFrame {
+        ImageFrame {
             image: None,
             camera_properties: camera_properties.clone(),
         }
@@ -79,9 +79,9 @@ impl Frame {
     /// Create a new frame from image size
     ///
     /// Precondition: The image size must be non-zero.
-    pub fn from_size(view_size: &ImageSize) -> Frame {
+    pub fn from_size(view_size: &ImageSize) -> ImageFrame {
         assert!(view_size.area() > 0);
-        Frame {
+        ImageFrame {
             image: None,
             camera_properties: RenderCameraProperties::default_from(*view_size),
         }

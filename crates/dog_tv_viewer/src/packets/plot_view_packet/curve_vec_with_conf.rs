@@ -1,10 +1,7 @@
-use crate::renderables::color::Color;
-use crate::renderables::plot::ClearCondition;
-use crate::renderables::plot::CurveTrait;
-use alloc::collections::vec_deque::VecDeque;
-use alloc::string::String;
-
-extern crate alloc;
+use crate::packets::plot_view_packet::ClearCondition;
+use crate::packets::plot_view_packet::CurveTrait;
+use crate::preludes::*;
+use dog_tv_renderer::renderables::color::Color;
 
 /// Vector of curves with confidence intervals
 #[derive(Clone, Debug)]
